@@ -327,6 +327,23 @@ void video_updatepixel(int line,int pixel,u8 s)
 	}
 }
 
+#define MAKERGB555(pp) \
+	(((pp) >> (3 + 0)) << 0) | \
+	(((pp) >> (3 + 8)) << 5) | \
+	(((pp) >> (3 + 16)) << 10);
+
+void video_updaterawpixel(int line, int pixel, u32 s)
+	{
+	int offset = (line * 256) + pixel;
+
+	switch (screenbpp) {
+	case 15:
+	case 16:
+		screen[offset] = MAKERGB555(s);
+		break;
+	}
+}
+
 //this handles palette changes from the nes engine
 void video_updatepalette(u8 addr,u8 data)
 {
