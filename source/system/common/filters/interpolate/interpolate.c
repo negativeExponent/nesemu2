@@ -22,10 +22,10 @@
 
 #define INTERPOLATE(p1,p2)		((((p1) >> 1) & 0x7F7F7F7F) + (((p2) >> 1) & 0x7F7F7F7F))
 
-void interpolate2x(void *void_dst,u32 dst_slice,void *void_src,u32 src_slice,u32 width,u32 height)
+void interpolate2x(void *void_dst,u32 dst_slice,const void *void_src,u32 src_slice,u32 width,u32 height)
 {
 	u32 *dest = (u32*)void_dst;
-	u32 *src = (u32*)void_src;
+	const u32 *src = (const u32*)void_src;
 	u32 *p;
 	u32 x,y;
 
@@ -45,10 +45,10 @@ void interpolate2x(void *void_dst,u32 dst_slice,void *void_src,u32 src_slice,u32
 }
 
 //TODO: this one doesnt look quite right
-void interpolate3x(void *void_dst,u32 dst_slice,void *void_src,u32 src_slice,u32 width,u32 height)
+void interpolate3x(void *void_dst,u32 dst_slice,const void *void_src,u32 src_slice,u32 width,u32 height)
 {
 	u32 *dest = (u32*)void_dst;
-	u32 *src = (u32*)void_src;
+	const u32 *src = (const u32*)void_src;
 	u32 *p1,*p2,*p3;
 	u32 x,y;
 
@@ -76,6 +76,6 @@ void interpolate3x(void *void_dst,u32 dst_slice,void *void_src,u32 src_slice,u32
 	}
 }
 
-void interpolate4x(void *dst,u32 dst_slice,void *src,u32 src_slice,u32 width,u32 height)
+void interpolate4x(void *dst,u32 dst_slice,const void *src,u32 src_slice,u32 width,u32 height)
 {
 }

@@ -60,7 +60,7 @@ static u32 *screen = 0;
 static u8 *nesscreen = 0;
 
 //draw function pointer and pointer to current video filter
-static void (*drawfunc)(void*,u32,void*,u32,u32,u32);		//dest,destpitch,src,srcpitch,width,height
+static void (*drawfunc)(void*,u32,const void*,u32,u32,u32);		//dest,destpitch,src,srcpitch,width,height
 static filter_t *filter;
 
 //for correct colors

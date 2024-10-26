@@ -80,7 +80,7 @@ void ntsc_palette_changed()
 		palette_changed();
 }
 
-void ntsc2x(void *d,u32 dst_slice,void *s,u32 src_slice,u32 width,u32 height)
+void ntsc2x(void *d,u32 dst_slice,const void *s,u32 src_slice,u32 width,u32 height)
 {
 	static int phase = 0;
 	int bpp = 32;
@@ -134,10 +134,10 @@ void ntsc2x(void *d,u32 dst_slice,void *s,u32 src_slice,u32 width,u32 height)
 	}
 }
 
-void ntsc3x(void *dst,u32 dst_slice,void *src,u32 src_slice,u32 width,u32 height)
+void ntsc3x(void *dst,u32 dst_slice,const void *src,u32 src_slice,u32 width,u32 height)
 {
 }
 
-void ntsc4x(void *dst,u32 dst_slice,void *src,u32 src_slice,u32 width,u32 height)
+void ntsc4x(void *dst,u32 dst_slice,const void *src,u32 src_slice,u32 width,u32 height)
 {
 }

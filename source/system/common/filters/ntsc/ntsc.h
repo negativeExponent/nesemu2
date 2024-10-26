@@ -26,8 +26,8 @@
 int ntsc_init();
 void ntsc_kill();
 void ntsc_palette_changed();
-void ntsc2x(void *dst,u32 dst_slice,void *src,u32 src_slice,u32 width,u32 height);
-void ntsc3x(void *dst,u32 dst_slice,void *src,u32 src_slice,u32 width,u32 height);
-void ntsc4x(void *dst,u32 dst_slice,void *src,u32 src_slice,u32 width,u32 height);
+void ntsc2x(void *dst,u32 dst_slice,const void *src,u32 src_slice,u32 width,u32 height);
+void ntsc3x(void *dst,u32 dst_slice,const void *src,u32 src_slice,u32 width,u32 height);
+void ntsc4x(void *dst,u32 dst_slice,const void *src,u32 src_slice,u32 width,u32 height);
 
 #endif

@@ -23,11 +23,11 @@
 
 #include "types.h"
 
-void draw1x(u32 *dest,u32 destp,u32 *src,u32 srcp,u32 w,u32 h);
-void draw2x(u32 *dest,u32 destp,u32 *src,u32 srcp,u32 w,u32 h);
-void draw3x(u32 *dest,u32 destp,u32 *src,u32 srcp,u32 w,u32 h);
-void draw4x(u32 *dest,u32 destp,u32 *src,u32 srcp,u32 w,u32 h);
-void draw5x(u32 *dest,u32 destp,u32 *src,u32 srcp,u32 w,u32 h);
-void draw6x(u32 *dest,u32 destp,u32 *src,u32 srcp,u32 w,u32 h);
+void draw1x(void *void_dst,u32 destp,const void *void_src,u32 srcp,u32 w,u32 h);
+void draw2x(void *void_dst,u32 destp,const void *void_src,u32 srcp,u32 w,u32 h);
+void draw3x(void *void_dst,u32 destp,const void *void_src,u32 srcp,u32 w,u32 h);
+void draw4x(void *void_dst,u32 destp,const void *void_src,u32 srcp,u32 w,u32 h);
+void draw5x(void *void_dst,u32 destp,const void *void_src,u32 srcp,u32 w,u32 h);
+void draw6x(void *void_dst,u32 destp,const void *void_src,u32 srcp,u32 w,u32 h);
 
 #endif
