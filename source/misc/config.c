@@ -22,6 +22,8 @@
 	#include <direct.h>
 	#include <io.h>
 #else
+	#include <sys/stat.h>
+//	#include <sys/types.h>
 	#include <unistd.h>
 #endif
 #include <stdlib.h>
@@ -56,14 +58,14 @@ static void mkdirr(char *path)
 			continue;
 		}
 		*p = 0;
-		mkdir(tmp);
+		mkdir(tmp,0755);
 		chmod(tmp,0755);
 		*p = PATH_SEPERATOR;
 		p++;
 	}
 
 	//now create the directory we want
-	mkdir(path);
+	mkdir(path,0755);
 	chmod(path,0755);
 
 	//free tmp string
