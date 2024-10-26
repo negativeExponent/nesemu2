@@ -187,7 +187,7 @@ void console_hide()
 //call 60 times a second
 void console_update()
 {
-	static keydown = 0;
+	static int keydown = 0;
 
 	if(joykeys[SDLK_BACKQUOTE] && (keydown & 1) == 0) {
 		if(showing == 0)
