@@ -44,4 +44,8 @@ typedef unsigned int64	u64;
 typedef u8 (*readfunc_t)(u32);
 typedef void (*writefunc_t)(u32,u8);
 
+#ifndef stricmp
+int stricmp(char *s1,char *s2);
+#endif
+
 #endif
