@@ -80,6 +80,7 @@ typedef struct cart_s {
 
 	//internal mapper id
 	int		mapperid;
+	int		submapper;
 
 	//mirroring, battery flag
 	u8			mirroring,battery;

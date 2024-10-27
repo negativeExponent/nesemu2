@@ -84,6 +84,7 @@ static int parse_ines20_header(cart_t *ret,u8 *header)
 
 	//get internal board id
 	ret->mapperid = mapper_get_mapperid_ines20(mapper,submapper);
+	ret->submapper = submapper;
 
 	return(0);
 }
