@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,12 +30,22 @@
 static int parse_ines20_header(cart_t *ret,u8 *header)
 {
 	int mapper,submapper;
+	int value;
 
 	//prg/chr sizes
-	ret->prg.size = header[4] * 0x4000;
-	ret->chr.size = header[5] * 0x2000;
-	ret->prg.size += (((header[9] >> 0) & 0xF) << 8) * 0x4000;
-	ret->chr.size += (((header[9] >> 4) & 0xF) << 8) * 0x2000;
+	value = (header[9] >> 0) & 0x0F;
+	if (value < 0x0F) {
+		ret->prg.size = ((header[4]) | ((header[9] & 0x0F) << 8)) * 0x4000;
+	} else {
+		ret->prg.size = pow(2, header[4] >> 2) * ((header[4] & 0x03) * 2 + 1);
+	}
+
+	value = (header[9] >> 4) & 0x0F;
+	if (value < 0x0F) {
+		ret->chr.size = ((header[5]) | ((header[9] & 0xF0) << 4)) * 0x2000;
+	} else {
+		ret->chr.size = pow(2, header[5] >> 2) * ((header[5] & 0x03) * 2 + 1);
+	}
 
 	//mirroring info
 	ret->mirroring = header[6] & 1;
