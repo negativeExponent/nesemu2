@@ -109,7 +109,10 @@ RETRO_API void retro_get_system_av_info(struct retro_system_av_info *info) {
 }
 
 RETRO_API void retro_set_controller_port_device(unsigned port, unsigned device) {}
-RETRO_API void retro_reset(void) {}
+
+RETRO_API void retro_reset(void) {
+	emu_event(E_SOFTRESET,0);
+}
 
 extern u32 *pixel32;
 
