@@ -18,39 +18,33 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "mappers/mapperinc.h"
-#include "mappers/chips/latch.h"
+#include "types.h"
+#include "misc/log.h"
+#include "misc/config.h"
+#include "misc/memutil.h"
+#include "system/sound.h"
 
-static void (*sync)();
-u8 latch_data;
-u32 latch_addr;
-
-void latch_write(u32 addr,u8 data)
+int sound_init()
 {
-//	if (nes->cpu.readpages[addr >> 10][addr & 0x3FF] != data)
-//		log_printf("latch_write: $%04X = $%02X (PC = $%04X)\n", addr, data, nes->cpu.pc);
-	latch_addr = addr;
-	latch_data = data;
-	sync();
+	return(0);
 }
 
-void latch_reset(void (*s)(),int hard)
+void sound_kill()
 {
-	int i;
-
-	sync = s;
-	for(i=8;i<16;i++)
-		mem_setwritefunc(i,latch_write);
-	if(hard) {
-		latch_data = 0;
-		latch_addr = 0;
-	}
-	sync();
 }
 
-void latch_state(int mode,u8 *data)
+void sound_play()
 {
-	STATE_U8(latch_data);
-	STATE_U16(latch_addr);
-	sync();
+}
+
+void sound_pause()
+{
+}
+
+void sound_update(void *buf,int size)
+{
+}
+
+void sound_setfps(int fps)
+{
 }

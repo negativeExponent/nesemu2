@@ -18,39 +18,43 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "mappers/mapperinc.h"
-#include "mappers/chips/latch.h"
+#include "font.h"
+#include "fontdata.h"
 
-static void (*sync)();
-u8 latch_data;
-u32 latch_addr;
+#define TEXTCOLOR	0xEEEEEE
 
-void latch_write(u32 addr,u8 data)
-{
-//	if (nes->cpu.readpages[addr >> 10][addr & 0x3FF] != data)
-//		log_printf("latch_write: $%04X = $%02X (PC = $%04X)\n", addr, data, nes->cpu.pc);
-	latch_addr = addr;
-	latch_data = data;
-	sync();
-}
-
-void latch_reset(void (*s)(),int hard)
+static int getindex(char ch)
 {
 	int i;
 
-	sync = s;
-	for(i=8;i<16;i++)
-		mem_setwritefunc(i,latch_write);
-	if(hard) {
-		latch_data = 0;
-		latch_addr = 0;
+	for(i=0;fontmap[i];i++) {
+		if(fontmap[i] == ch)
+			return(i);
 	}
-	sync();
+	return(-1);
 }
 
-void latch_state(int mode,u8 *data)
+void font_drawchar(char ch,u32 *dest,int pitch)
 {
-	STATE_U8(latch_data);
-	STATE_U16(latch_addr);
-	sync();
+	int x,y,index = getindex(ch);
+	u8 *bits = fontbits;
+
+	if(index == -1)
+		return;
+	bits += index * 8;
+	for(y=0;y<8;y++) {
+		for(x=0;x<8;x++) {
+			if(bits[y] & (1 << x))
+				dest[7 - x] = TEXTCOLOR;
+		}
+		dest += pitch;
+	}
+}
+
+void font_drawstr(char *str,u32 *dest,int pitch)
+{
+	while(*str) {
+		font_drawchar(*str++,dest,pitch);
+		dest += 8;
+	}
 }

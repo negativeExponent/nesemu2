@@ -1,0 +1,109 @@
+CORE_DIR := ..
+
+LIBRETRO_DIR := $(CORE_DIR)/libretro
+LIBRETRO_COMM_DIR := $(LIBRETRO_DIR)/libretro-common
+
+PATH_SOURCE := $(CORE_DIR)/source
+
+INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include -I$(PATH_SOURCE) 
+LIBS += -lSDL
+
+# build configuration for nesemu2
+
+# use undocumented cpu opcodes
+USE_CPU_UNDOC ?= 1
+
+# use quick sprite code
+USE_QUICK_SPRITES ?= 1
+
+# misc source files
+SOURCE_MISC = $(PATH_SOURCE)/misc/config.c $(PATH_SOURCE)/misc/log.c $(PATH_SOURCE)/misc/crc32.c
+SOURCE_MISC += $(PATH_SOURCE)/misc/memutil.c $(PATH_SOURCE)/misc/vars.c $(PATH_SOURCE)/misc/paths.c
+SOURCE_MISC += $(PATH_SOURCE)/misc/memfile.c $(PATH_SOURCE)/misc/strutil.c $(PATH_SOURCE)/misc/history.c
+SOURCE_MISC += $(PATH_SOURCE)/misc/slre/slre.c
+
+# cartdb source files
+SOURCE_CARTDB = $(PATH_SOURCE)/cartdb/cartdb.c $(PATH_SOURCE)/cartdb/parser.c
+SOURCE_CARTDB += $(foreach dir,$(PATH_SOURCE)/cartdb/expat,$(wildcard $(dir)/*.c))
+
+# emu source files
+SOURCE_EMU = $(PATH_SOURCE)/emu/emu.c $(PATH_SOURCE)/emu/commands.c $(PATH_SOURCE)/emu/events.c
+SOURCE_EMU += $(PATH_SOURCE)/emu/commands/general.c $(PATH_SOURCE)/emu/commands/nes.c
+
+# search mapper directory for source files
+MAPPER_DIRS = $(shell find $(PATH_SOURCE)/mappers -type d)
+SOURCE_MAPPERS = $(foreach dir,$(MAPPER_DIRS),$(wildcard $(dir)/*.c))
+
+# search inputdev directory for source files
+SOURCE_INPUTDEV = $(foreach dir,$(PATH_SOURCE)/inputdev,$(wildcard $(dir)/*.c))
+
+# nes core
+SOURCE_NES = $(PATH_SOURCE)/nes/memory.c $(PATH_SOURCE)/nes/nes.c $(PATH_SOURCE)/nes/io.c $(PATH_SOURCE)/nes/genie.c $(PATH_SOURCE)/nes/region.c
+SOURCE_NES += $(PATH_SOURCE)/nes/cart/cart.c $(PATH_SOURCE)/nes/cart/ines.c $(PATH_SOURCE)/nes/cart/ines20.c
+SOURCE_NES += $(PATH_SOURCE)/nes/cart/unif.c $(PATH_SOURCE)/nes/cart/fds.c $(PATH_SOURCE)/nes/cart/nsf.c
+SOURCE_NES += $(PATH_SOURCE)/nes/cart/patch/patch.c $(PATH_SOURCE)/nes/cart/patch/ips.c $(PATH_SOURCE)/nes/cart/patch/ups.c $(PATH_SOURCE)/nes/cart/doctor.c
+SOURCE_NES += $(PATH_SOURCE)/nes/state/state.c $(PATH_SOURCE)/nes/state/block.c
+SOURCE_NES += $(PATH_SOURCE)/nes/cpu/cpu.c $(PATH_SOURCE)/nes/cpu/disassemble.c
+SOURCE_NES += $(PATH_SOURCE)/nes/ppu/io.c $(PATH_SOURCE)/nes/ppu/ppu.c $(PATH_SOURCE)/nes/ppu/step.c
+SOURCE_NES += $(PATH_SOURCE)/nes/ppu/tilecache.c
+SOURCE_NES += $(PATH_SOURCE)/nes/apu/apu.c $(PATH_SOURCE)/nes/movie.c
+
+# palette
+SOURCE_PALETTE = $(PATH_SOURCE)/palette/generator.c $(PATH_SOURCE)/palette/palette.c
+
+# libretro system files
+SYSTEM_SYSTEM_LIBRETRO = $(PATH_SOURCE)/system/libretro/video.c $(PATH_SOURCE)/system/libretro/input.c $(PATH_SOURCE)/system/libretro/sound.c
+SYSTEM_SYSTEM_LIBRETRO += $(PATH_SOURCE)/system/libretro/system.c
+SYSTEM_SYSTEM_LIBRETRO += $(PATH_SOURCE)/system/libretro/console/console.c $(PATH_SOURCE)/system/libretro/console/font.c
+SYSTEM_SYSTEM_LIBRETRO += $(PATH_SOURCE)/system/libretro/console/fontdata.c $(PATH_SOURCE)/system/libretro/console/linebuffer.c
+SYSTEM_SYSTEM_LIBRETRO += $(PATH_SOURCE)/system/libretro/libretro.c
+
+# sdl/linux system files
+SOURCE_SYSTEM_SDL_LINUX = $(PATH_SOURCE)/system/linux/stricmp.c
+
+# common system files
+SOURCE_SYSTEM_COMMON = $(PATH_SOURCE)/system/common/filters.c
+SOURCE_SYSTEM_COMMON += $(PATH_SOURCE)/system/common/filters/draw/draw.c $(PATH_SOURCE)/system/common/filters/interpolate/interpolate.c
+SOURCE_SYSTEM_COMMON += $(PATH_SOURCE)/system/common/filters/scale2x/scalebit.c $(PATH_SOURCE)/system/common/filters/scale2x/scale2x.c
+SOURCE_SYSTEM_COMMON += $(PATH_SOURCE)/system/common/filters/scale2x/scale3x.c
+SOURCE_SYSTEM_COMMON += $(PATH_SOURCE)/system/common/filters/ntsc/ntsc.c
+
+# setup defines
+ifeq ($(USE_CPU_UNDOC),1)
+	COREDEFINES += -DCPU_UNDOC
+endif
+ifeq ($(USE_QUICK_SPRITES),1)
+	COREDEFINES += -DQUICK_SPRITES
+endif
+
+COREDEFINES += -DLINUX -DRELEASE
+
+SOURCES_C += $(SOURCE_MISC) $(SOURCE_EMU) $(SOURCE_MAPPERS) $(SOURCE_INPUTDEV) $(SOURCE_NES) $(SOURCE_PALETTE)
+SOURCES_C += $(SOURCE_CARTDB)
+SOURCES_C += $(SYSTEM_SYSTEM_LIBRETRO) $(SOURCE_SYSTEM_SDL_LINUX) $(SOURCE_SYSTEM_COMMON)
+
+ifneq (,$(findstring msvc2003,$(platform)))
+	INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
+endif
+
+ifneq ($(STATIC_LINKING), 1)
+	SOURCES_C += \
+		$(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
+		$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+		$(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+		$(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
+		$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
+		$(LIBRETRO_COMM_DIR)/file/file_path.c \
+		$(LIBRETRO_COMM_DIR)/file/file_path_io.c \
+		$(LIBRETRO_COMM_DIR)/memmap/memalign.c \
+		$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
+		$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
+		$(LIBRETRO_COMM_DIR)/streams/memory_stream.c \
+		$(LIBRETRO_COMM_DIR)/string/stdstring.c \
+		$(LIBRETRO_COMM_DIR)/time/rtime.c \
+		$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
+ifdef _MSC_VER
+	SOURCES_C += \
+ 		$(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c
+endif
+endif

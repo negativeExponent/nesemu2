@@ -18,39 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "mappers/mapperinc.h"
-#include "mappers/chips/latch.h"
+#ifndef __fontdata_h__
+#define __fontdata_h__
 
-static void (*sync)();
-u8 latch_data;
-u32 latch_addr;
+#include "types.h"
 
-void latch_write(u32 addr,u8 data)
-{
-//	if (nes->cpu.readpages[addr >> 10][addr & 0x3FF] != data)
-//		log_printf("latch_write: $%04X = $%02X (PC = $%04X)\n", addr, data, nes->cpu.pc);
-	latch_addr = addr;
-	latch_data = data;
-	sync();
-}
+extern u8 fontmap[];
+extern u8 fontbits[];
 
-void latch_reset(void (*s)(),int hard)
-{
-	int i;
-
-	sync = s;
-	for(i=8;i<16;i++)
-		mem_setwritefunc(i,latch_write);
-	if(hard) {
-		latch_data = 0;
-		latch_addr = 0;
-	}
-	sync();
-}
-
-void latch_state(int mode,u8 *data)
-{
-	STATE_U8(latch_data);
-	STATE_U16(latch_addr);
-	sync();
-}
+#endif
