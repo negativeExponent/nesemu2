@@ -95,7 +95,7 @@ static int determineformat(memfile_t *file)
 
 	//check if ines format
 	if(memcmp(header,ident_ines,4) == 0) {
-		if((header[15] == 0) && ((header[7] & 0xC) == 0x8))
+		if((header[7] & 0xC) == 0x8)
 			return(FORMAT_INES20);
 		return(FORMAT_INES);
 	}
