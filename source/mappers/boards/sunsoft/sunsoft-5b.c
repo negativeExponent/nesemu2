@@ -106,6 +106,10 @@ static void write(u32 addr,u8 data)
 			}
 			sync();
 			break;
+		case 0xC000:
+		case 0xE000:
+			FME7sound_Write(addr, data);
+			break;
 	}
 }
 
