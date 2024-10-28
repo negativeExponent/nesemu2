@@ -57,5 +57,6 @@ int mapper_get_mapperid_ines20(int num,int sub)
 		if((num == boards[i].num) && (sub == boards[i].sub))
 			return(boards[i].boardid);
 	}
-	return(B_UNSUPPORTED);
+	/* try with ines function as last resort */
+	return(mapper_get_mapperid_ines(num));
 }
