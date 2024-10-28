@@ -61,14 +61,17 @@ static void write(u32 addr,u8 data)
 			prg[0] = data;
 			break;
 		case 0x9000:
-			break;
 		case 0xA000:
+			addr = (addr & 0xFFFC) | map[addr & 3];
+			VRC6sound_Write(addr, data);
 			break;
 		case 0xB000:
-			switch(map[addr & 3]) {
+			addr = (addr & 0xFFFC) | map[addr & 3];
+			switch(addr & 3) {
 				case 0:
 				case 1:
 				case 2:
+					VRC6sound_Write(addr, data);
 					break;
 				case 3:
 					mirror = data & 0xC;
