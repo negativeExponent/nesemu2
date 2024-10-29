@@ -61,6 +61,8 @@ bool libretro_supports_bitmasks = false;
 static unsigned system_width = 256;
 static unsigned system_height = 240;
 
+static unsigned serialize_size = 0;
+
 static void default_logger(enum retro_log_level level, const char *fmt, ...) {}
 static void check_system_specs(void) {
 	/* TODO - when we get it running at fullspeed on PSP, set to 4 */
@@ -149,9 +151,64 @@ RETRO_API void retro_run(void) {
 	video_cb(pixel32, system_width, system_height, system_width * sizeof(u32));
 }
 
-RETRO_API size_t retro_serialize_size(void) { return 0; }
-RETRO_API bool retro_serialize(void *data, size_t size) { return false; }
-RETRO_API bool retro_unserialize(const void *data, size_t size) { return false; }
+RETRO_API size_t retro_serialize_size(void) {
+	if (serialize_size == 0) {
+		memfile_t *file;
+		u8 *buffer;
+		size_t size;
+
+		file = memfile_open_memory(buffer, size);
+
+		state_save(file);
+
+		mem_free(file->data);
+		serialize_size = file->size;
+		mem_free(file);
+	}
+	return serialize_size;
+}
+
+RETRO_API bool retro_serialize(void *data, size_t size) {
+	if (serialize_size == size) {
+		memfile_t *file;
+		u8 *_dat = (u8*)mem_alloc(size);
+
+		if (!_dat) return false;
+
+		file = memfile_open_memory(_dat, size);
+
+		mem_free(_dat);
+
+		state_save(file);
+
+		memcpy(data, file->data, size);
+
+		if (file->data) mem_free(file->data);
+		mem_free(file);
+
+		return true;
+	}
+
+	return false;
+}
+
+RETRO_API bool retro_unserialize(const void *data, size_t size) {
+	if (serialize_size == size) {
+		memfile_t *file;
+
+		file = memfile_open_memory(data, size);
+
+		state_load(file);
+
+		if (file->data) mem_free(file->data);
+		mem_free(file);
+
+		return true;
+	}
+
+	return false;
+}
+
 RETRO_API void retro_cheat_reset(void) {}
 RETRO_API void retro_cheat_set(unsigned index, bool enabled, const char *code) {}
 
@@ -226,6 +283,8 @@ RETRO_API bool retro_load_game(const struct retro_game_info *info) {
 	if(strcmp(content_path,"") != 0) {
 		emu_event(E_LOADROM,(void*)content_path);
 	}
+
+	serialize_size = 0;
 
 	return (nes->cart != NULL);
 }
