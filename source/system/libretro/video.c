@@ -20,7 +20,6 @@
 
 #include <string.h>
 
-/* #include <SDL/SDL.h> */
 #include "misc/log.h"
 #include "palette/palette.h"
 #include "nes/nes.h"
@@ -50,8 +49,6 @@ static const int Bloss = 0;
 
 u32 *pixel32; /* video framebuffer */
 //system related variables
-/* static SDL_Surface *surface = 0; */
-/* static int flags = SDL_DOUBLEBUF | SDL_HWSURFACE; */
 static int screenw,screenh,screenbpp;
 static int screenscale = 1;
 
@@ -59,20 +56,13 @@ static int screenscale = 1;
 static u8 palette[8][64 * 3];
 
 //palette data fed to video system
-static u16 palette15[8][256];		//15 bit color
-static u16 palette16[8][256];		//16 bit color
 static u32 palette32[8][256];		//32 bit color
 
 //caches of all available colors
-static u16 palettecache16[256];
 static u32 palettecache32[256];
 
 //actual values written to nes palette ram
 static u8 palettecache[32];
-
-//for frame limiting
-static double interval = 0;
-static u64 lasttime = 0;
 
 //pointer to scree and copy of the nes screen
 static u32 *screen = 0;
@@ -81,10 +71,6 @@ static u8 *nesscreen = 0;
 //draw function pointer and pointer to current video filter
 static void (*drawfunc)(void*,u32,const void*,u32,u32,u32);		//dest,destpitch,src,srcpitch,width,height
 static filter_t *filter;
-
-//for correct colors
-static int rshift,gshift,bshift;
-static int rloss,gloss,bloss;
 
 static int find_drawfunc(int scale,int bpp)
 {
@@ -109,123 +95,15 @@ static int find_drawfunc(int scale,int bpp)
 	return(1);
 }
 
-static void get_surface_info(void)
-{
-	log_printf("get_surface_info:  sdl surface info:\n");
-	log_printf("  bits per pixel:  %d\n", BitsPerPixel);
-	log_printf("    red:    mask:  %08X    shift:  %d    loss: %d\n",Rmask,Rshift,Rloss);
-	log_printf("    green:  mask:  %08X    shift:  %d    loss: %d\n",Gmask,Gshift,Gloss);
-	log_printf("    blue:   mask:  %08X    shift:  %d    loss: %d\n",Bmask,Bshift,Bloss);
-
-	rshift = Rshift;
-	gshift = Gshift;
-	bshift = Bshift;
-	rloss = 0;
-	gloss = 0;
-	bloss = 0;
-}
-
-//return absolute value
-static int absolute_value(int v)
-{
-	return((v < 0) ? (0 - v) : v);
-}
-
-#if 0
-int find_video_mode(int wantw,int wanth,int flags2,int *w,int *h)
-{
-	SDL_Rect **modes,*mode;
-	int i,diffw[2],diffh[2];
-
-	//get list of modes from sdl
-	modes = SDL_ListModes(NULL, flags2);
-	*w = *h = 0;
-
-	//if nothing returned
-	if(modes == (SDL_Rect**)0) {
-		log_printf("find_video_mode:  fatal error:  no modes available\n");
-		return(1);
-	}
-
-	//see if any mode is available (windowed mode)
-	if(modes == (SDL_Rect**)-1) {
-		log_printf("find_video_mode:  all resolutions available\n");
-		*w = wantw;
-		*h = wanth;
-		return(0);
-	}
-
-	//output modes
-	log_printf("find_video_mode:  available modes:\n");
-	for(i=0;modes[i];i++) {
-		log_printf("find_video_mode:    %d x %d\n",modes[i]->w,modes[i]->h);
-	}
-
-	//search for closest video mode
-	for(mode=0,i=0;modes[i];i++) {
-		if(modes[i]->w >= wantw && modes[i]->h >= wanth) {
-			if(mode == 0) {
-				mode = modes[i];
-			}
-			else {
-				diffw[0] = absolute_value(mode->w - wantw);
-				diffh[0] = absolute_value(mode->h - wanth);
-				diffw[1] = absolute_value(modes[i]->w - wantw);
-				diffh[1] = absolute_value(modes[i]->h - wanth);
-				if((diffw[1] + diffh[1]) < (diffw[0] + diffh[0])) {
-					mode = modes[i];
-				}
-			}
-		}
-	}
-
-	//if a mode was found set the return variables
-	if(mode) {
-		*w = mode->w;
-		*h = mode->h;
-	}
-
-	return(0);
-}
-#endif
-
-static int get_desktop_bpp()
-{
-	log_printf("get_desktop_bpp:  current display mode is %d x %d, %d bpp\n",256,240,BitsPerPixel);
-	return(BitsPerPixel);
-}
-
 int video_init()
 {
 	if(nesscreen == 0)
 		nesscreen = (u8*)mem_alloc(256 * (240 + 16));
 
-	//setup timer to limit frames
-	interval = (double)system_getfrequency() / 60.0f;
-	lasttime = system_gettick();
-
-	//clear palette caches
-	memset(palettecache16,0,256*sizeof(u16));
 	memset(palettecache32,0,256*sizeof(u32));
 
 	//set screen info
-	/*flags &= ~SDL_FULLSCREEN;
-	flags |= config_get_bool("video.fullscreen") ? SDL_FULLSCREEN : 0;*/
 	screenscale = config_get_int("video.scale");
-
-#if 0
-	//fullscreen mode
-	if(flags & SDL_FULLSCREEN) {
-		screenscale = (screenscale < 2) ? 2 : screenscale;
-		screenbpp = 32;
-	}
-
-	//windowed mode
-	else {
-		screenbpp = get_desktop_bpp();
-	}
-#endif
-
 	screenbpp = BitsPerPixel;
 
 	//initialize the video filters
@@ -244,35 +122,14 @@ int video_init()
 	screenw = filter->minwidth / filter->minscale * screenscale;
 	screenh = filter->minheight / filter->minscale * screenscale;
 
-#if 0
-	//fullscreen mode
-	if(flags & SDL_FULLSCREEN) {
-		int w,h;
-
-		if(find_video_mode(screenw,screenh,flags | SDL_FULLSCREEN,&w,&h) == 0) {
-			screenw = w;
-			screenh = h;
-			log_printf("video_init:  best display mode:  %d x %d\n",w,h);
-		}
-	}
-#endif
-
 	//initialize surface/window
-#if 0
-	surface = SDL_SetVideoMode(screenw,screenh,screenbpp,flags);
-	SDL_WM_SetCaption("nesemu2",NULL);
-	SDL_ShowCursor(0);
-#endif
-
-	get_surface_info();
-
+	pixel32 = (u32*)mem_realloc(pixel32, screenw * sizeof(u32) * screenh);
 
 	//allocate memory for temp screen buffer
 	screen = (u32*)mem_realloc(screen,256 * (240 + 16) * (screenbpp / 8) * 4);
-	pixel32 = (u32*)mem_realloc(pixel32,256 * (240 + 16) * (screenbpp / 8) * 4);
 
 	//print information
-	log_printf("video initialized:  %dx%dx%d %s\n",NesWidth,NesHeight,BitsPerPixel,"windowed");
+	log_printf("video initialized:  %dx%dx%d %s\n",screenw,screenh,BitsPerPixel,"windowed");
 
 	return(0);
 }
@@ -280,7 +137,6 @@ int video_init()
 void video_kill()
 {
 	filter_kill();
-	/*SDL_ShowCursor(1);*/
 	if(screen)
 		mem_free(screen);
 	if(nesscreen)
@@ -300,8 +156,6 @@ int video_reinit()
 
 void video_startframe()
 {
-	//lock sdl surface
-	/*SDL_LockSurface(surface);*/
 }
 
 void video_endframe()
@@ -309,20 +163,8 @@ void video_endframe()
 	u64 t;
 
 	//draw everything
-	drawfunc(pixel32,256*4,screen,256*4,256,240);
-	console_draw((u32*)pixel32,256*4,screenh);
-
-	//flip buffers and unlock surface
-	/*SDL_Flip(surface);
-	SDL_UnlockSurface(surface);*/
-
-	//simple frame limiter
-	if(config_get_bool("video.framelimit")) {
-		do {
-			t = system_gettick();
-		} while((double)(t - lasttime) < interval);
-		lasttime = t;
-	}
+	drawfunc(pixel32,screenw*sizeof(u32),screen,256*4,256,240);
+	console_draw((u32*)pixel32,screenw*sizeof(u32),screenh);
 }
 
 //this handles lines for gui/status messages
@@ -406,14 +248,14 @@ void video_setpalette(palette_t *p)
 	for(j=0;j<8;j++) {
 		for(i=0;i<256;i++) {
 			e = &p->pal[j][i & 0x3F];
-			palette32[j][i] = (e->r << rshift) | (e->g << gshift) | (e->b << bshift);
+			palette32[j][i] = (e->r << 16) | (e->g << 8) | (e->b << 0);
 		}
 	}
 
 	filter_palette_changed();
 }
 
-int video_getwidth()				{	return(screenw);			}
+int video_getwidth()			{	return(screenw);			}
 int video_getheight()			{	return(screenh);			}
 int video_getbpp()				{	return(screenbpp);		}
 u8 *video_getscreen()			{	return(nesscreen);		}
@@ -436,4 +278,4 @@ int video_zapperhit(int x,int y)
 //kludge-city!
 int video_getxoffset()	{	return(0);	}
 int video_getyoffset()	{	return(0);	}
-int video_getscale()		{	return(screenscale);	}
+int video_getscale()	{	return(screenscale);	}

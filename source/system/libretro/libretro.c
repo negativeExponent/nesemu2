@@ -58,6 +58,9 @@ retro_audio_sample_batch_t audio_batch_cb        = NULL;
 
 bool libretro_supports_bitmasks = false;
 
+static unsigned system_width = 256;
+static unsigned system_height = 240;
+
 static void default_logger(enum retro_log_level level, const char *fmt, ...) {}
 static void check_system_specs(void) {
 	/* TODO - when we get it running at fullspeed on PSP, set to 4 */
@@ -100,11 +103,11 @@ RETRO_API void retro_get_system_info(struct retro_system_info *info) {
 }
 
 RETRO_API void retro_get_system_av_info(struct retro_system_av_info *info) {
-	info->geometry.base_width = 256;
-	info->geometry.base_height = 240;
-	info->geometry.max_width = 256;
-	info->geometry.max_height = 240;
-	info->geometry.aspect_ratio = 0.0f;
+	info->geometry.base_width = system_width;
+	info->geometry.base_height = system_height;
+	info->geometry.max_width = system_width;
+	info->geometry.max_height = system_height;
+	info->geometry.aspect_ratio = system_width * (8.0 / 7.0) / system_height;
 	info->timing.fps = nes->region->fps;
 	info->timing.sample_rate = 44100.0;
 }
@@ -122,8 +125,20 @@ RETRO_API void retro_run(void) {
 	s16 *sound;
 	u32 ssize;
 	int i;
+	int width, height;
 
 	input_poll_cb();
+
+	width = video_getwidth();
+	height = video_getheight();
+
+	if ((system_width != width) || (system_height != height)) {
+		struct retro_system_av_info av_info;
+		system_width = width;
+		system_height = height;
+		retro_get_system_av_info(&av_info);
+		environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
+	}
 
 	system_checkevents();
 	input_poll();
@@ -131,7 +146,7 @@ RETRO_API void retro_run(void) {
 	nes_frame();
 	video_endframe();
 
-	video_cb(pixel32, 256, 240, 256 * sizeof(u32));
+	video_cb(pixel32, system_width, system_height, system_width * sizeof(u32));
 }
 
 RETRO_API size_t retro_serialize_size(void) { return 0; }
