@@ -6,7 +6,6 @@ LIBRETRO_COMM_DIR := $(LIBRETRO_DIR)/libretro-common
 PATH_SOURCE := $(CORE_DIR)/source
 
 INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include -I$(PATH_SOURCE) 
-LIBS += -lSDL
 
 # build configuration for nesemu2
 

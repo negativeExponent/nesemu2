@@ -58,14 +58,22 @@ static void mkdirr(char *path)
 			continue;
 		}
 		*p = 0;
+#ifdef _WIN32
+		mkdir(tmp);
+#else
 		mkdir(tmp,0755);
+#endif
 		chmod(tmp,0755);
 		*p = PATH_SEPERATOR;
 		p++;
 	}
 
 	//now create the directory we want
-	mkdir(path,0755);
+#ifdef _WIN32
+	mkdir(tmp);
+#else
+	mkdir(tmp,0755);
+#endif
 	chmod(path,0755);
 
 	//free tmp string

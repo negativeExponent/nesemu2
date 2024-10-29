@@ -18,7 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
+#include <string.h>
+
 #include "emu/commands.h"
 #include "misc/log.h"
 #include "misc/memutil.h"
@@ -223,42 +224,42 @@ static int isignored(int ch)
 
 static int isletter(int ch)
 {
-	if (ch >= SDLK_a && ch <= SDLK_z)
+	if (ch >= RETROK_a && ch <= RETROK_z)
 		return(1);
 	return(0);
 }
 
 static int isnumber(int ch)
 {
-	if (ch >= SDLK_0 && ch <= SDLK_9)
+	if (ch >= RETROK_0 && ch <= RETROK_9)
 		return(1);
 	return(0);
 }
 
 void console_keyevent(int state,int sym)
 {
-	int modstate = SDL_GetModState();
-	int isshift = modstate & (KMOD_LSHIFT | KMOD_RSHIFT);
-	int iscaps = modstate & KMOD_CAPS;
+	int modstate/* = SDL_GetModState()*/;
+	int isshift = modstate /*& (KMOD_LSHIFT | KMOD_RSHIFT)*/;
+	int iscaps = modstate /*& KMOD_CAPS*/;
 	int i,ch = -1;
 
 	//ignore keyup events
-	if(state == SDL_KEYUP)
-		return;
+	/*if(state == SDL_KEYUP)
+		return;*/
 
 	//if shift is pressed invert caps lock state
-	if(isshift)
-		iscaps ^= KMOD_CAPS;
+	/*if(isshift)
+		iscaps ^= KMOD_CAPS;*/
 
 	//cursor left
-	if (sym == SDLK_LEFT) {
+	if (sym == RETROK_LEFT) {
 		if (inputbufpos)
 			inputbufpos--;
 		return;
 	}
 
 	//cursor right
-	else if (sym == SDLK_RIGHT) {
+	else if (sym == RETROK_RIGHT) {
 		if (inputbufpos < inputbuflen)
 			inputbufpos++;
 		return;
@@ -266,7 +267,7 @@ void console_keyevent(int state,int sym)
 
 	//if this is a letter
 	else if(isletter(sym) || isnumber(sym)) {
-		ch = sym - SDLK_a;
+		ch = sym - RETROK_a;
 		if(iscaps)
 			ch += 'A';
 		else
@@ -279,7 +280,7 @@ void console_keyevent(int state,int sym)
 //	}
 
 	//backspace
-	else if(sym == SDLK_BACKSPACE) {
+	else if(sym == RETROK_BACKSPACE) {
 		if(inputbufpos) {
 			inputbuflen--;
 			inputbufpos--;
@@ -291,7 +292,7 @@ void console_keyevent(int state,int sym)
 		return;
 	}
 
-	else if(sym == SDLK_RETURN) {
+	else if(sym == RETROK_RETURN) {
 		command_execute(inputbuf);
 		inputbufpos = inputbuflen = 0;
 		memset(inputbuf,0,1024);

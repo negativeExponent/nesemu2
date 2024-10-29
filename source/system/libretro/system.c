@@ -18,7 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
+#include <string.h>
+
 #ifdef WIN32
 	#include <windows.h>
 	#include <direct.h>
@@ -41,8 +42,6 @@
 #ifndef _MAX_PATH
 	#define _MAX_PATH 4096
 #endif
-
-static SDL_Joystick *joystick = 0;
 
 #include <libretro.h>
 extern retro_input_state_t input_state_cb;
@@ -174,11 +173,13 @@ u64 system_getfrequency()
 #else //#elif defined(SDL)
 u64 system_gettick()
 {
-	return(SDL_GetTicks());
+	/* TODO: implement ticks */
+	return(0);
 }
 
 u64 system_getfrequency()
 {
-	return(1000);
+	/* return(1000); */
+	return(0);
 }
 #endif

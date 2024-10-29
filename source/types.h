@@ -23,10 +23,14 @@
 
 #if defined(_MSC_VER)
 	#define int64 __int64
+#ifndef INLINE
 	#define INLINE __inline
+#endif
 #elif defined(__GNUC__)
 	#define int64 long long
+#ifndef INLINE
 	#define INLINE inline
+#endif
 #else
 	#error unknown compiler.  please #define int64.
 #endif
@@ -44,8 +48,10 @@ typedef unsigned int64	u64;
 typedef u8 (*readfunc_t)(u32);
 typedef void (*writefunc_t)(u32,u8);
 
+#ifndef _WIN32
 #ifndef stricmp
 int stricmp(char *s1,char *s2);
+#endif
 #endif
 
 #endif

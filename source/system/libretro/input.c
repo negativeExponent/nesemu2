@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
 #include "system/input.h"
 #include "system/system.h"
 #include "misc/config.h"
@@ -52,7 +51,6 @@ int input_init()
 {
 	int i;
 
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 	for(i=0;i<20;i++) {
 		joystate[i] = 0;
 	}
@@ -73,9 +71,9 @@ void input_poll()
 		keystate[i] = input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, i) ? 1 : 0;
 
 	//need to update mousex/mousey/mousebuttons here
-	joytrigger = (u8)(SDL_GetMouseState(&x,&y) & 1) << 4;
+	/*joytrigger = (u8)(SDL_GetMouseState(&x,&y) & 1) << 4;
 	joyx = x;
-	joyy = y;
+	joyy = y;*/
 
 	//now update key/mouse state, the input device logic will
 	//decode the key/mouse data into the correct input for the nes
@@ -94,11 +92,10 @@ extern int video_getscale();
 	
 int input_poll_mouse(int *x,int *y)
 {
-	u8 buttons = SDL_GetMouseState(x,y);
+	u8 buttons;
 	int scale;
 
 	scale = video_getscale();
-	SDL_ShowCursor(1);		//  <--- kludge!
 	if(config_get_bool("video.fullscreen") != 0) {
 		*x -= video_getxoffset();
 		*y -= video_getyoffset();
@@ -109,7 +106,7 @@ int input_poll_mouse(int *x,int *y)
 		*x /= scale;
 		*y /= scale;
 	}
-	return(buttons & SDL_BUTTON(1));
+	return(buttons);
 }
 
 void input_update_config()
