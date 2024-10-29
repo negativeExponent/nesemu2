@@ -189,13 +189,11 @@ static INLINE void updatebuffer()
 	if(sample > 0x7FFF)
 		sample = 0x7FFF;
 	soundbuf[soundbuflen++] = (s16)sample;
-#ifndef __LIBRETRO__
 	//see if we are done with a frame, and if so send it away to the sound system
 	if(soundbuflen == 735) {
 		sound_update((void*)soundbuf,735);
 		soundbuflen = 0;
 	}
-#endif
 }
 
 //this is called every cycle
@@ -247,16 +245,4 @@ void apu_set_region(int r)
 		FrameCycles = FrameCyclesNTSC;
 		sound_setfps(60);
 	}
-}
-
-u8 *apu_get_buf(void)
-{
-	return (u8*)soundbuf;
-}
-
-u32 apu_get_buf_size(void)
-{
-	u32 ret = soundbuflen;
-	soundbuflen = 0;
-	return ret;
 }

@@ -57,7 +57,4 @@ void apu_state(int mode,u8 *data);
 void apu_set_region(int r);
 void apu_dpcm_fetch();
 
-u8 *apu_get_buf(void);
-u32 apu_get_buf_size(void);
-
 #endif

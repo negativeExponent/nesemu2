@@ -49,11 +49,12 @@ char exepath[1024] = "";
 
 static retro_video_refresh_t video_cb            = NULL;
 static retro_input_poll_t input_poll_cb          = NULL;
-retro_input_state_t input_state_cb               = NULL;
 static retro_audio_sample_t audio_cb             = NULL;
-static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static retro_environment_t environ_cb            = NULL;
 static struct retro_log_callback log_cb          = { 0 };
+
+retro_input_state_t input_state_cb               = NULL;
+retro_audio_sample_batch_t audio_batch_cb        = NULL;
 
 bool libretro_supports_bitmasks = false;
 
@@ -131,14 +132,6 @@ RETRO_API void retro_run(void) {
 	video_endframe();
 
 	video_cb(pixel32, 256, 240, 256 * sizeof(u32));
-
-	sound = (s16*)apu_get_buf();
-	ssize = apu_get_buf_size();
-
-	for (i = 0; i < ssize; i++)
-		sound_sample_buf[(i << 1) + 0] = sound_sample_buf[(i << 1) + 1] = sound[i];
-	
-	audio_batch_cb(sound_sample_buf, ssize);
 }
 
 RETRO_API size_t retro_serialize_size(void) { return 0; }

@@ -24,13 +24,23 @@
 #include "misc/memutil.h"
 #include "system/sound.h"
 
+#include <libretro.h>
+extern retro_audio_sample_batch_t audio_batch_cb;
+
+static s16 *sound_buf;
+
 int sound_init()
 {
+	if (sound_buf) return 0;
+	/* samples are 735 length s16* */
+	sound_buf = (s16*)mem_alloc(1024 * 2 * sizeof(s16));
 	return(0);
 }
 
 void sound_kill()
 {
+	mem_free(sound_buf);
+	sound_buf = 0;
 }
 
 void sound_play()
@@ -43,6 +53,17 @@ void sound_pause()
 
 void sound_update(void *buf,int size)
 {
+	s16 *sample = (s16*)buf;
+	int len = 0;
+
+	while (size) {
+		int pos = len >> 1;
+		sound_buf[len++] = sample[pos];
+		sound_buf[len++] = sample[pos];
+		size--;
+	}
+
+	audio_batch_cb((const s16*)sound_buf, len >> 1);
 }
 
 void sound_setfps(int fps)
