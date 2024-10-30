@@ -54,7 +54,7 @@ int emu_event(int id,void *data)
 			break;
 
 		case E_LOADROM:
-			if((ret = nes_load((char*)data)) == 0) {
+			if((ret = nes_load((char*)data, 0, 0)) == 0) {
 				nes_reset(1);
 				running = config_get_bool("video.pause_on_load") ? 0 : 1;
 			}
@@ -66,7 +66,7 @@ int emu_event(int id,void *data)
 			if(nes->cart == 0)
 				break;
 			str = mem_strdup(nes->cart->filename);
-			if((ret = nes_load_patched(str,(char*)data)) == 0) {
+			if((ret = nes_load_patched(str,(char*)data, 0, 0)) == 0) {
 				nes_reset(1);
 			}
 			mem_free(str);

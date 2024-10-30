@@ -70,7 +70,19 @@ static void check_system_specs(void) {
 	environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
 }
 
-RETRO_API void retro_set_environment(retro_environment_t cb) { environ_cb = cb; }
+RETRO_API void retro_set_environment(retro_environment_t cb) {
+	static const struct retro_system_content_info_override content_overrides[] = {
+		{
+		    "fds|nes|unf|unif|nsf|nsfe", /* extensions */
+		    false,                       /* need_fullpath */
+		    false                        /* persistent_data */
+		},
+		{ NULL, false, false }
+	};
+	environ_cb = cb;
+	environ_cb(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *)content_overrides);
+}
+
 RETRO_API void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 RETRO_API void retro_set_audio_sample(retro_audio_sample_t cb) { audio_cb = cb; }
 RETRO_API void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
@@ -94,7 +106,7 @@ RETRO_API unsigned retro_api_version(void) { return RETRO_API_VERSION; }
 
 RETRO_API void retro_get_system_info(struct retro_system_info *info) {
 	info->need_fullpath    = true;
-	info->valid_extensions = "fds|nes|unf|unif";
+	info->valid_extensions = "fds|nes|unf|unif|nsf|nsfe";
 #ifdef GIT_VERSION
 	info->library_version = "0.6.1" GIT_VERSION;
 #else
@@ -280,8 +292,9 @@ RETRO_API bool retro_load_game(const struct retro_game_info *info) {
 	}
 
 	//load rom specified by arguments
-	if(strcmp(content_path,"") != 0) {
-		emu_event(E_LOADROM,(void*)content_path);
+	if((nes_load((char*)content_path, content_data, content_size)) == 0) {
+		nes_reset(1);
+		running = 1;
 	}
 
 	serialize_size = 0;

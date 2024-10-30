@@ -106,8 +106,8 @@ typedef struct cart_s {
 
 } cart_t;
 
-cart_t *cart_load(const char *filename);
-cart_t *cart_load_patched(const char *filename,const char *patchfilename);
+cart_t *cart_load(const char *filename, u8 *data, u32 datasize);
+cart_t *cart_load_patched(const char *filename,const char *patchfilename, u8 *data, u32 datasize);
 void cart_unload(cart_t *r);
 void cart_setwramsize(cart_t *r,int banks);
 void cart_setvramsize(cart_t *r,int banks);

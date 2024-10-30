@@ -138,12 +138,12 @@ int nes_load_cart(cart_t *c)
 	return(0);
 }
 
-int nes_load(char *filename)
+int nes_load(char *filename, u8 *data, u32 datasize)
 {
-	return(nes_load_patched(filename,0));
+	return(nes_load_patched(filename,0, data, datasize));
 }
 
-int nes_load_patched(char *filename,char *patchfilename)
+int nes_load_patched(char *filename,char *patchfilename, u8 *data, u32 datasize)
 {
 	cart_t *c;
 
@@ -151,7 +151,7 @@ int nes_load_patched(char *filename,char *patchfilename)
 	nes_unload();
 
 	//try to load the file into a cart_t struct
-	if((c = cart_load_patched(filename,patchfilename)) == 0) {
+	if((c = cart_load_patched(filename,patchfilename, data, datasize)) == 0) {
 		log_printf("nes_load:  error loading '%s'\n",filename);
 		return(1);
 	}
