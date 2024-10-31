@@ -10,7 +10,7 @@ jobs:
     - name: linux build
       run: make -j$(getconf _NPROCESSORS_ONLN)
 
-libretro-linux:
+  libretro-linux:
     runs-on: ubuntu-latest
     steps:
     - name: install build dependencies
@@ -21,7 +21,7 @@ libretro-linux:
         cd libretro
         make -j$(getconf _NPROCESSORS_ONLN)
 
-libretro-windows:
+  libretro-windows:
     runs-on: windows-latest
     steps:
     - uses: msys2/setup-msys2@v2
