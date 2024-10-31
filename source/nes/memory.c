@@ -175,8 +175,8 @@ void mem_setvram(int banksize,int page,int bank)
 	}
 }
 
-void mem_setwramsize(int banks)	{	cart_setwramsize(nes->cart,banks);	}
-void mem_setvramsize(int banks)	{	cart_setvramsize(nes->cart,banks);	}
+void mem_setwramsize(int banks)	{	if (banks) cart_setwramsize(nes->cart,banks);	}
+void mem_setvramsize(int banks)	{	if (banks) cart_setvramsize(nes->cart,banks);	}
 
 void mem_setmirroring(int m)
 {
