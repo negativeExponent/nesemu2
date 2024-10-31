@@ -26,7 +26,6 @@ jobs:
           mingw-w64-x86_64-ntldd
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-pkg-config
-          mingw-w64-sdl12-compat
     - uses: actions/checkout@v4
     - name: windows build
       shell: msys2 {0}
