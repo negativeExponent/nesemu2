@@ -26,9 +26,9 @@ jobs:
           mingw-w64-x86_64-ntldd
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-pkg-config
-    - name: search for sdl
-      run: pacman -Ss sdl
     - uses: actions/checkout@v4
     - name: windows build
       shell: msys2 {0}
-      run: make
+      run: |
+        pacman -Ss sdl
+        make
