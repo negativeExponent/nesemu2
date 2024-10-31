@@ -32,4 +32,5 @@ jobs:
       shell: msys2 {0}
       run: |
         pacman -Ss sdl
-        make
+        pacman -Ql mingw-w64-clang-x86_64-sdl12-compat
+#        make
