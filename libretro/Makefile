@@ -1,9 +1,6 @@
 DEBUG=0
-EXTERNAL_ZLIB=0
 STATIC_LINKING=0
 ENDIANNESS_DEFINES=
-SIGNED_CHAR=0
-HAVE_NTSC=1
 C89_BUILD=0
 V=1
 
@@ -170,10 +167,8 @@ else ifeq ($(platform), ps2)
 	PLATFORM_DEFINES += -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include -I$(PS2DEV)/gsKit/include
 	PLATFORM_DEFINES += -DPATH_MAX=1024 -DINLINE=inline -DHAVE_ASPRINTF
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-
-	HAVE_NTSC = 0
 	C89_BUILD = 0
+
 # PSP
 else ifeq ($(platform), psp1)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -184,8 +179,6 @@ else ifeq ($(platform), psp1)
 	PLATFORM_DEFINES += -fomit-frame-pointer -fstrict-aliasing
 	PLATFORM_DEFINES += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-	HAVE_NTSC = 0
 
 # Vita
 else ifeq ($(platform), vita)
@@ -194,7 +187,6 @@ else ifeq ($(platform), vita)
 	AR = arm-vita-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DVITA
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
 
 # DOS
 else ifeq ($(platform), dos)
@@ -203,7 +195,6 @@ else ifeq ($(platform), dos)
 	AR = i686-pc-msdosdjgpp-ar
 	CFLAGS += -march=i386
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
 
 # CTR(3DS)
 else ifeq ($(platform), ctr)
@@ -215,8 +206,6 @@ else ifeq ($(platform), ctr)
 	CFLAGS += -Wall -mword-relocations
 	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-	HAVE_NTSC=0
 
 # Raspberry Pi 1
 else ifeq ($(platform), rpi1)
@@ -264,7 +253,6 @@ else ifeq ($(platform), rpi4)
 # Lightweight PS3 Homebrew SDK
 else ifneq (,$(filter $(platform), ps3 psl1ght))
     ENDIANNESS_DEFINES =  -DMSB_FIRST
-    EXTERNAL_ZLIB = 1
     STATIC_LINKING = 1
     PLATFORM_DEFINES += -D__PS3__
 
@@ -285,7 +273,6 @@ else ifeq ($(platform), xenon)
 	PLATFORM_DEFINES := -D__LIBXENON__
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
 
 # Nintendo Game Cube
 else ifeq ($(platform), ngc)
@@ -296,7 +283,6 @@ else ifeq ($(platform), ngc)
 	PLATFORM_DEFINES += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
 
 # Nintendo Wii
 else ifeq ($(platform), wii)
@@ -307,8 +293,6 @@ else ifeq ($(platform), wii)
 	PLATFORM_DEFINES += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-	SIGNED_CHAR=1
 
 # Nintendo WiiU
 else ifeq ($(platform), wiiu)
@@ -319,8 +303,6 @@ else ifeq ($(platform), wiiu)
 	PLATFORM_DEFINES += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-	SIGNED_CHAR=1
 
 # Nintendo Switch (libtransistor)
 else ifeq ($(platform), switch)
@@ -328,7 +310,6 @@ else ifeq ($(platform), switch)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
 	include $(LIBTRANSISTOR_HOME)/libtransistor.mk
 	LDFLAGS = $(LD_SHARED_LIBRARY_FLAGS) -ltransistor.lib.nro $(LIBTRANSISTOR_LIB_LDFLAGS) -E
-	EXTERNAL_ZLIB=1
 
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)
@@ -433,7 +414,6 @@ else ifneq (,$(findstring armv,$(platform)))
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
 	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
 
 # GCW0
 else ifeq ($(platform), gcw0)
@@ -444,7 +424,6 @@ else ifeq ($(platform), gcw0)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=link.T -Wl,-no-undefined
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float -fomit-frame-pointer
-	EXTERNAL_ZLIB = 1
 
 # RETROFW
 else ifeq ($(platform), retrofw)
@@ -455,7 +434,6 @@ else ifeq ($(platform), retrofw)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=link.T -Wl,-no-undefined
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32 -mhard-float -fomit-frame-pointer
-	EXTERNAL_ZLIB = 1
 
 # Miyoo
 else ifeq ($(platform), miyoo)
@@ -466,7 +444,6 @@ else ifeq ($(platform), miyoo)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=link.T -Wl,-no-undefined
 	PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math -mcpu=arm926ej-s
-	EXTERNAL_ZLIB = 1
 
 # cross Windows
 else ifeq ($(platform), wincross64)
@@ -750,14 +727,6 @@ ifneq ($(SANITIZER),)
 CFLAGS += -fsanitize=$(SANITIZER)
 CXXFLAGS += -fsanitize=$(SANITIZER)
 LDFLAGS += -fsanitize=$(SANITIZER)
-endif
-
-ifeq ($(EXTERNAL_ZLIB), 1)
-	CFLAGS += -DHAVE_EXTERNAL_ZLIB
-endif
-
-ifeq ($(SIGNED_CHAR), 1)
-	CFLAGS += -fsigned-char
 endif
 
 INCLUDE_STDINT = 0

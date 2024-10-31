@@ -73,7 +73,7 @@ static void check_system_specs(void) {
 RETRO_API void retro_set_environment(retro_environment_t cb) {
 	static const struct retro_system_content_info_override content_overrides[] = {
 		{
-		    "fds|nes|unf|unif|nsf|nsfe", /* extensions */
+		    "fds|nes|unf|unif|nsf", /* extensions */
 		    false,                       /* need_fullpath */
 		    false                        /* persistent_data */
 		},
@@ -106,7 +106,7 @@ RETRO_API unsigned retro_api_version(void) { return RETRO_API_VERSION; }
 
 RETRO_API void retro_get_system_info(struct retro_system_info *info) {
 	info->need_fullpath    = true;
-	info->valid_extensions = "fds|nes|unf|unif|nsf|nsfe";
+	info->valid_extensions = "fds|nes|unf|unif|nsf";
 #ifdef GIT_VERSION
 	info->library_version = "0.6.1" GIT_VERSION;
 #else

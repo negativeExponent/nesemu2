@@ -1,7 +1,7 @@
 # Software Information
 display_name = "Nintendo - NES / Famicom (nesemu2)"
 authors = "James Holodnak"
-supported_extensions = "nes|fds|unf|unif"
+supported_extensions = "nes|fds|unf|unif|nsf"
 corename = "nesemu2"
 license = ""
 permissions = ""
