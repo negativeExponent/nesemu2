@@ -13,8 +13,6 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-    - name: search for sdl
-      run: pacman -Ss sdl
     - uses: msys2/setup-msys2@v2
       with:
         update: true
@@ -28,6 +26,8 @@ jobs:
           mingw-w64-x86_64-ntldd
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-pkg-config
+    - name: search for sdl
+      run: pacman -Ss sdl
     - uses: actions/checkout@v4
     - name: windows build
       shell: msys2 {0}
