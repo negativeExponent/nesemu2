@@ -4,11 +4,11 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
+    - name: install build dependencies
+      run: sudo apt install wget git build-essential libsdl1.2-dev
     - uses: actions/checkout@v4
     - name: linux build
-      run: |
-        sudo apt install wget git build-essential libsdl1.2-dev libsdl2-dev
-        make -j$(getconf _NPROCESSORS_ONLN)
+      run: make -j$(getconf _NPROCESSORS_ONLN)
 
   windows:
     runs-on: windows-latest
