@@ -30,4 +30,6 @@ jobs:
     - uses: actions/checkout@v4
     - name: windows build
       shell: msys2 {0}
-      run: make
+      run: |
+        apt-cache search sdl1
+        make
