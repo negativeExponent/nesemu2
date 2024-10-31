@@ -125,21 +125,29 @@ static int determineformat(memfile_t *file)
 	return(FORMAT_UNKNOWN);
 }
 
-cart_t *cart_load(const char *filename)
+cart_t *cart_load(const char *filename, u8 *data, u32 datasize)
 {
-	return(cart_load_patched(filename,0));
+	return(cart_load_patched(filename,0, data, datasize));
 }
 
-cart_t *cart_load_patched(const char *filename,const char *patchfilename)
+cart_t *cart_load_patched(const char *filename,const char *patchfilename, u8 *data, u32 datasize)
 {
 	cart_t *ret = 0;
 	int format,n;
 	memfile_t *file;
 
-	//try to open file
-	if((file = memfile_open((char*)filename,"rb")) == 0) {
-		log_printf("cart_load:  error opening '%s'\n",filename);
-		return(0);
+	// try to load from memory
+	if (data && datasize) {
+		log_printf("cart_load: load from memory\n");
+		file = memfile_open_memory(data, datasize);
+	}
+	if (file == 0) {
+		//try to open file
+		log_printf("cart_load: load from file\n");
+		if((file = memfile_open((char*)filename,"rb")) == 0) {
+			log_printf("cart_load:  error opening '%s'\n",filename);
+			return(0);
+		}
 	}
 
 	//find out what format the file is

@@ -1,0 +1,45 @@
+name: nesemu2 CI
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: install build dependencies
+      run: sudo apt install libsdl1.2-dev
+    - uses: actions/checkout@v4
+    - name: linux build
+      run: make -j$(getconf _NPROCESSORS_ONLN)
+
+  libretro-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: install build dependencies
+      run: sudo apt install libsdl1.2-dev
+    - uses: actions/checkout@v4
+    - name: linux build
+      run: |
+        cd libretro
+        make -j$(getconf _NPROCESSORS_ONLN)
+
+  libretro-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          gcc
+          git
+          make
+          zip
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-ntldd
+          mingw-w64-x86_64-zlib
+          mingw-w64-x86_64-pkg-config
+    - uses: actions/checkout@v4
+    - name: windows build with c68k
+      shell: msys2 {0}
+      run: |
+        cd libretro
+        make
