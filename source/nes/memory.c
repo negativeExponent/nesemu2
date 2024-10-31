@@ -120,9 +120,16 @@ void mem_setprg(int banksize,int page,int bank)
 	u8 *ptr = nes->cart->prg.data + ((bank * banksize * 1024) & nes->cart->prg.mask);
 
 	page <<= 2;
-	for(i=0;i<(banksize);i++) {
-		nes->cpu.readpages[page + i] = ptr + ((i * 0x400) & nes->cart->prg.mask);
-		nes->cpu.writepages[page + i] = 0;
+	if(ptr) {
+		for(i=0;i<(banksize);i++) {
+			nes->cpu.readpages[page + i] = ptr + ((i * 0x400) & nes->cart->prg.mask);
+			nes->cpu.writepages[page + i] = 0;
+		}
+	} else {
+		for(i=0;i<(banksize);i++) {
+			nes->cpu.readpages[page + i] = 0;
+			nes->cpu.writepages[page + i] = 0;
+		}
 	}
 }
 
@@ -132,9 +139,16 @@ void mem_setwram(int banksize,int page,int bank)
 	u8 *ptr = nes->cart->wram.data + ((bank * banksize * 1024) & nes->cart->wram.mask);
 
 	page <<= 2;
-	for(i=0;i<(banksize);i++) {
-		nes->cpu.readpages[page + i] = 
-		nes->cpu.writepages[page + i] = ptr + i * 0x400;
+	if(ptr) {
+		for(i=0;i<(banksize);i++) {
+			nes->cpu.readpages[page + i] = 
+			nes->cpu.writepages[page + i] = ptr + i * 0x400;
+		}
+	} else {
+		for(i=0;i<(banksize);i++) {
+			nes->cpu.readpages[page + i] = 
+			nes->cpu.writepages[page + i] = 0;
+		}
 	}
 }
 
