@@ -50,7 +50,7 @@ typedef void (*writefunc_t)(u32,u8);
 
 #ifndef _WIN32
 #ifndef stricmp
-int stricmp(char *s1,char *s2);
+int stricmp(const char *s1,const char *s2);
 #endif
 #endif
 

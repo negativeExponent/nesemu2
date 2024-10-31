@@ -1,6 +1,6 @@
 #include <ctype.h>
 
-int stricmp(char *s1,char *s2)
+int stricmp(const char *s1,const char *s2)
 {
 	char c1,c2;
 

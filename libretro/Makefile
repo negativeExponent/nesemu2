@@ -718,6 +718,9 @@ ifeq ($(C89_BUILD),1)
 	CFLAGS += -D_GNU_SOURCE
 endif
 
+CFLAGS +=
+WARNINGS += -Wextra
+
 SOURCE_DIR := src
 LIBRETRO_DIR := libretro
 

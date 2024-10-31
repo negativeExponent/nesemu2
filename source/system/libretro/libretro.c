@@ -208,7 +208,7 @@ RETRO_API bool retro_unserialize(const void *data, size_t size) {
 	if (serialize_size == size) {
 		memfile_t *file;
 
-		file = memfile_open_memory(data, size);
+		file = memfile_open_memory((u8*)data, size);
 
 		state_load(file);
 
@@ -292,7 +292,7 @@ RETRO_API bool retro_load_game(const struct retro_game_info *info) {
 	}
 
 	//load rom specified by arguments
-	if((nes_load((char*)content_path, content_data, content_size)) == 0) {
+	if((nes_load((char*)content_path, (u8*)content_data, content_size)) == 0) {
 		nes_reset(1);
 		running = 1;
 	}
