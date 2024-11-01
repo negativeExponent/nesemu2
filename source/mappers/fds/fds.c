@@ -91,6 +91,9 @@ static u8 fds_read(u32 addr)
 	//read from nes apu regs
 	if(addr < 0x4020)
 		return(read4(addr));
+	
+	if (addr >= 0x4040 && addr <= 0x4092)
+		return FDSsound_Read( addr );
 
 	//fds read
 	switch(addr) {
@@ -158,6 +161,11 @@ static void fds_write(u32 addr,u8 data)
 {
 	if(addr < 0x4020) {
 		write4(addr,data);
+		return;
+	}
+
+	if(addr >= 0x4040 && addr <= 0x4092) {
+		FDSsound_Write( addr, data );
 		return;
 	}
 
