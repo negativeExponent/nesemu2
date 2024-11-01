@@ -27,6 +27,13 @@ int console_init();
 void console_kill();
 void console_draw(u32 *dest,int w,int h);
 void console_update();
-void console_keyevent(int state,int sym);
+void console_keyevent(int state, int sym);
+
+#define STATE_KEYUP    1
+#define STATE_KEYDOWN  0
+
+#define STATE_CAPSLOCK 1
+#define STATE_LSHIFT   2
+#define STATE_rSHIFT   4
 
 #endif

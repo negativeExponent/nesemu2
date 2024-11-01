@@ -26,7 +26,7 @@
 #include "system/system.h"
 #include "system/video.h"
 #include "system/win32/resource.h"
-#include "system/sdl/console/console.h"
+#include "system/libretro/console/console.h"
 #include "misc/memutil.h"
 #include "misc/config.h"
 #include "system/common/filters.h"

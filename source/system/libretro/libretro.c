@@ -41,7 +41,7 @@
 #include "system/input.h"
 #include "palette/palette.h"
 #include "palette/generator.h"
-#include "system/sdl/console/console.h"
+#include "system/libretro/console/console.h"
 
 //required
 char configfilename[1024] = CONFIG_FILENAME;
@@ -157,7 +157,8 @@ RETRO_API void retro_run(void) {
 	system_checkevents();
 	input_poll();
 	video_startframe();
-	nes_frame();
+	if (running && nes->cart)
+		nes_frame();
 	video_endframe();
 
 	video_cb(pixel32, system_width, system_height, system_width * sizeof(u32));

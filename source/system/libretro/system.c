@@ -32,7 +32,7 @@
 #include "system/video.h"
 #include "system/input.h"
 #include "system/sound.h"
-#include "system/sdl/console/console.h"
+#include "system/libretro/console/console.h"
 #include "nes/nes.h"
 #include "nes/state/state.h"
 #include "misc/paths.h"
@@ -74,6 +74,9 @@ void system_kill()
 #define BUTTON_DOWN     5
 #define BUTTON_LEFT     6
 #define BUTTON_RIGHT    7
+
+static u8 joykeylast[370];
+extern int modstate;
 
 void system_checkevents()
 {
@@ -124,6 +127,24 @@ void system_checkevents()
 	}
 	else
 		inDiskSwitch = 0;
+	
+	if (joykeys[RETROK_CAPSLOCK] && !joykeylast[RETROK_CAPSLOCK]) {
+		/* toggle caps lock */
+		joykeylast[RETROK_CAPSLOCK] = 1;
+		modstate = (modstate ^ STATE_CAPSLOCK);
+	} else {
+		joykeylast[RETROK_CAPSLOCK] = 0;
+	}
+
+	for (i = 0; i < 350; i++) {
+		if (joykeys[i] && !joykeylast[i]) {
+			joykeylast[i] = 1;
+			console_keyevent(0, i);
+		} else if (!joykeys[i]) {
+			joykeylast[i] = 0;
+			console_keyevent(1, i);
+		}
+	}
 
 	//update the console
 	console_update();

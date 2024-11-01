@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "misc/memutil.h"
-#include "system/sdl/console/linebuffer.h"
+#include "system/libretro/console/linebuffer.h"
 
 #define CONSOLE_LINEBUF_SIZE	128
 

@@ -26,9 +26,9 @@
 #include "palette/palette.h"
 #include "system/input.h"
 #include "system/video.h"
-#include "system/sdl/console/console.h"
-#include "system/sdl/console/font.h"
-#include "system/sdl/console/linebuffer.h"
+#include "system/libretro/console/console.h"
+#include "system/libretro/console/font.h"
+#include "system/libretro/console/linebuffer.h"
 
 #include <libretro.h>
 
@@ -236,20 +236,21 @@ static int isnumber(int ch)
 	return(0);
 }
 
-void console_keyevent(int state,int sym)
+int modstate = 0;
+
+void console_keyevent(int state, int sym)
 {
-	int modstate/* = SDL_GetModState()*/;
-	int isshift = modstate /*& (KMOD_LSHIFT | KMOD_RSHIFT)*/;
-	int iscaps = modstate /*& KMOD_CAPS*/;
+	int iscaps = (modstate & STATE_CAPSLOCK) != 0;
+	int isshift = (joykeys[RETROK_LSHIFT] | joykeys[RETROK_RSHIFT]) != 0;
 	int i,ch = -1;
 
 	//ignore keyup events
-	/*if(state == SDL_KEYUP)
-		return;*/
+	if(state == STATE_KEYUP)
+		return;
 
 	//if shift is pressed invert caps lock state
-	/*if(isshift)
-		iscaps ^= KMOD_CAPS;*/
+	if(isshift)
+		iscaps = !iscaps;
 
 	//cursor left
 	if (sym == RETROK_LEFT) {
