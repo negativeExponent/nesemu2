@@ -167,16 +167,17 @@ RETRO_API void retro_run(void) {
 RETRO_API size_t retro_serialize_size(void) {
 	if (serialize_size == 0) {
 		memfile_t *file;
-		u8 *buffer;
-		size_t size;
+		size_t size = 1000000; /* something really big */
+		u8 *buffer = (u8*)mem_alloc(size);
 
 		file = memfile_open_memory(buffer, size);
 
 		state_save(file);
 
-		mem_free(file->data);
-		serialize_size = file->size;
-		mem_free(file);
+		if (file->data) mem_free(file->data);
+		serialize_size = memfile_tell(file);
+		if (file) mem_free(file);
+		if (buffer) mem_free(buffer);
 	}
 	return serialize_size;
 }
