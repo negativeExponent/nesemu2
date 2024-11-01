@@ -174,24 +174,6 @@ char *system_getcwd()
 	return(buf);
 }
 
-#ifdef WIN32
-u64 system_gettick()
-{
-	LARGE_INTEGER li;
-
-	QueryPerformanceCounter(&li);
-	return(li.QuadPart);
-}
-
-u64 system_getfrequency()
-{
-	LARGE_INTEGER li;
-
-	if(QueryPerformanceFrequency(&li) == 0)
-		return(1);
-	return(li.QuadPart);
-}
-#else //#elif defined(SDL)
 u64 system_gettick()
 {
 	/* TODO: implement ticks */
@@ -203,4 +185,3 @@ u64 system_getfrequency()
 	/* return(1000); */
 	return(0);
 }
-#endif
