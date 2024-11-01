@@ -137,6 +137,7 @@ void namcot163_write(u32 addr,u8 data)
 			sync();
 			break;
 		case 0xF800:
+			N106sound_Write(addr, data);
 			protect = data;
 			sync();
 			break;
