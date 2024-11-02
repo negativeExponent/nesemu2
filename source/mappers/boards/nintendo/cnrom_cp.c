@@ -21,17 +21,31 @@
 #include "mappers/mapperinc.h"
 #include "mappers/chips/latch.h"
 
+static cache_t dummy[1024];
+static int type;
+
 static u8 readchr(u32 addr)
 {
-	return(0x12);
+	return(0xFF);
 }
 
 static void sync()
 {
 	int i;
+	int chrEnable;
+
+	switch(type) {
+	case B_NINTENDO_CNROM_CP_SEICROSSV2:
+		chrEnable = ((latch_data & 1) == 0); /* 7 */
+		break;
+	default:
+	case B_NINTENDO_CNROM_CP:
+		chrEnable = ((latch_data & 3) != 0) && (latch_data != 0x13); /* 1, 2, 3, 4, 5, 6 */
+		break;
+	}
 
 	//chr enabled
-	if((latch_data & 0xF) && latch_data != 0x13) {
+	if(chrEnable) {
 		mem_setchr8(0,0);
 		for(i=0;i<8;i++)
 			nes->ppu.readfuncs[i] = 0;
@@ -40,16 +54,29 @@ static void sync()
 	//chr disabled
 	else {
 		mem_unsetppu8(0);
-		for(i=0;i<8;i++)
+		for(i=0;i<8;i++) {
 			nes->ppu.readfuncs[i] = readchr;
+			/* hack to avoid reading from inaccessible pointer locatiom */
+			nes->ppu.cachepages[i] = dummy;
+			nes->ppu.cachepages_hflip[i] = dummy;
+		}
 	}
 }
 
-static void reset(int hard)
+static void reset(int t, int hard)
 {
+	type = t;
 	latch_reset(sync,hard);
-	mem_setprg16(0x8,0);
-	mem_setprg16(0xC,(u32)-1);
+	mem_setprg32(0x8,0);
 }
 
-MAPPER(B_NINTENDO_CNROM_CP,reset,0,0,latch_state);
+static void reset_cnrom_cp(int hard) {
+	reset(B_NINTENDO_CNROM_CP, hard);
+}
+
+static void reset_cnrom_seicrossv2(int hard) {
+	reset(B_NINTENDO_CNROM_CP_SEICROSSV2, hard);
+}
+
+MAPPER(B_NINTENDO_CNROM_CP,reset_cnrom_cp,0,0,latch_state);
+MAPPER(B_NINTENDO_CNROM_CP_SEICROSSV2,reset_cnrom_seicrossv2,0,0,latch_state);
