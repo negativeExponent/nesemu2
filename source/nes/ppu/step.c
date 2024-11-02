@@ -32,7 +32,9 @@ typedef struct {
 } sprtemp_t;				//sprite temp entry
 
 //todo: this needs to be moved to the ppu struct
-static sprtemp_t sprtemp[8];
+/* FIXME: sprtemp Used to be 8, but cursprite can overflow. This is just a workaround
+ * and should be properly fixed. (spritelimit?)*/
+static sprtemp_t sprtemp[64];
 static sprtemp_t *spr0 = 0;
 
 #include "step/calc.c"
