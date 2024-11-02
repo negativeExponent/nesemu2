@@ -38,6 +38,7 @@
 #include "misc/paths.h"
 #include "misc/log.h"
 #include "misc/config.h"
+#include "mappers/mapperid.h"
 
 #ifndef _MAX_PATH
 	#define _MAX_PATH 4096
@@ -117,16 +118,18 @@ void system_checkevents()
 	joystate[8 | BUTTON_LEFT]   = joypad_bits[1] & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT) ? 1 : 0;
 	joystate[8 | BUTTON_RIGHT]  = joypad_bits[1] & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT) ? 1 : 0;
 
-	if (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_L))
-	{
-		if (!inDiskSwitch)
+	if (nes->mapper->boardid == B_FDS) {
+		if (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_L))
 		{
-			emu_event(E_FLIPDISK, 0);
-			inDiskSwitch = 1;
+			if (!inDiskSwitch)
+			{
+				emu_event(E_FLIPDISK, 0);
+				inDiskSwitch = 1;
+			}
 		}
+		else
+			inDiskSwitch = 0;
 	}
-	else
-		inDiskSwitch = 0;
 	
 	if (joykeys[RETROK_CAPSLOCK] && !joykeylast[RETROK_CAPSLOCK]) {
 		/* toggle caps lock */
