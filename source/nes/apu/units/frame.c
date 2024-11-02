@@ -28,6 +28,8 @@
 static s32 FrameCyclesNTSC[5] = { 7456,14912,22370,29828,37280 };
 static s32 FrameCyclesPAL[5] = { 8312,16626,24938,33252,41560 };
 
+static s32 *FrameCycles;
+
 static INLINE void apu_frame_reset(int hard)
 {
 	if(hard) {
@@ -55,20 +57,6 @@ static INLINE void apu_frame_write(u32 addr,u8 data)
 
 static INLINE void apu_frame_step()
 {
-	s32 FrameCycles[8];
-	if (apu_ispal) {
-		FrameCycles[0] = FrameCyclesPAL[0];
-		FrameCycles[1] = FrameCyclesPAL[1];
-		FrameCycles[2] = FrameCyclesPAL[2];
-		FrameCycles[3] = FrameCyclesPAL[3];
-		FrameCycles[4] = FrameCyclesPAL[4];
-	} else {
-		FrameCycles[0] = FrameCyclesNTSC[0];
-		FrameCycles[1] = FrameCyclesNTSC[1];
-		FrameCycles[2] = FrameCyclesNTSC[2];
-		FrameCycles[3] = FrameCyclesNTSC[3];
-		FrameCycles[4] = FrameCyclesNTSC[4];
-	}
 	if(FRAME_CYCLES == FrameCycles[0]) {
 		FRAME_QUARTER = 2;
 	}

@@ -30,6 +30,8 @@ static u32 DPCMFreqPAL[16] = {
 	0x0B0,0x094,0x084,0x076,0x062,0x04E,0x042,0x032,
 };
 
+static u32 *DpcmFreqTable;
+
 static INLINE void apu_dpcm_reset(int hard)
 {
 	dpcm.freq = dpcm.wavehold = dpcm.doirq = dpcm.pcmdata = dpcm.addr = dpcm.len = 0;
@@ -81,10 +83,7 @@ static INLINE void apu_dpcm_step()
 	// this uses pre-decrement due to the lookup table
 	if (!--dpcm.Cycles)
 	{
-		if (apu_ispal)
-			dpcm.Cycles = DPCMFreqPAL[dpcm.freq];
-		else
-			dpcm.Cycles = DPCMFreqNTSC[dpcm.freq];
+		dpcm.Cycles = DpcmFreqTable[dpcm.freq];
 		if (!dpcm.silenced)
 		{
 			if (dpcm.shiftreg & 1)

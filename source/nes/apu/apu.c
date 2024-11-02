@@ -49,8 +49,6 @@ u8 LengthCounts[32] = {
 	0x20,0x1E
 };
 
-static int apu_ispal = 0;
-
 #include "nes/apu/race.c"
 #include "nes/apu/units/square.c"
 #include "nes/apu/units/triangle.c"
@@ -234,14 +232,17 @@ void apu_set_region(int r)
 {
 	//if this is a pal-based region
 	if(r & 1) {
-		
-		apu_ispal = 1;
+		NoiseFreqTable = NoiseFreqPAL;
+		DpcmFreqTable = DPCMFreqPAL;
+		FrameCycles = FrameCyclesPAL;
 		sound_setfps(50);
 	}
 
 	//ntsc based region
 	else {
-		apu_ispal = 0;
+		NoiseFreqTable = NoiseFreqNTSC;
+		DpcmFreqTable = DPCMFreqNTSC;
+		FrameCycles = FrameCyclesNTSC;
 		sound_setfps(60);
 	}
 }

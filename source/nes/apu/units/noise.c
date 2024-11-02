@@ -30,6 +30,8 @@ static u32 NoiseFreqPAL[16] = {
 	0x0BC,0x0EC,0x162,0x1D8,0x2C4,0x3B0,0x762,0xEC2,
 };
 
+static u32 *NoiseFreqTable;
+
 static INLINE void apu_noise_reset(int hard)
 {
 	noi.volume = noi.envelope = noi.wavehold = noi.datatype = 0;
@@ -78,10 +80,7 @@ static INLINE void apu_noise_step()
 	// this uses pre-decrement due to the lookup table
 	if (!--noi.Cycles)
 	{
-		if (apu_ispal)
-			noi.Cycles = NoiseFreqPAL[noi.freq];
-		else
-			noi.Cycles = NoiseFreqNTSC[noi.freq];
+		noi.Cycles = NoiseFreqTable[noi.freq];
 		if (noi.datatype)
 			noi.CurD = (noi.CurD << 1) | (((noi.CurD >> 14) ^ (noi.CurD >> 8)) & 0x1);
 		else	noi.CurD = (noi.CurD << 1) | (((noi.CurD >> 14) ^ (noi.CurD >> 13)) & 0x1);
