@@ -150,8 +150,8 @@ void system_checkevents()
 	console_update();
 
 	//check for system key presses
-	checkkey(RETROK_ESCAPE,	0,		E_QUIT);
-	checkkey(RETROK_F1,			1,		E_TOGGLERUNNING);
+	/*checkkey(RETROK_ESCAPE,	0,		E_QUIT);*/
+	/*checkkey(RETROK_F1,			1,		E_TOGGLERUNNING);*/
 	/*checkkey(SDLK_F4,			2,		E_TOGGLEFULLSCREEN);*/
 	/*checkkey(SDLK_F5,			3,		E_SAVESTATE);*/
 	/*checkkey(SDLK_F8,			4,		E_LOADSTATE);*/
