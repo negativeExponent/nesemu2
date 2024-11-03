@@ -30,13 +30,13 @@ struct ines20_boardid_s {
 #define INES20_BOARD(n,s,b)	{n,s,b},
 
 INES20_BOARD_START()
-	INES20_BOARD(0,	1,		B_NINTENDO_NROM_SRAM)			//nrom +	save ram
-	INES20_BOARD(0,	15, B_NES_DISK_SYSTEM)
-	INES20_BOARD(1,	5, B_NINTENDO_SxROM)
-	INES20_BOARD(4,	1,		B_NINTENDO_HxROM)
-	INES20_BOARD(21,	9,		B_KONAMI_VRC4A)
-	INES20_BOARD(21,	14,	B_KONAMI_VRC4C)
-	INES20_BOARD(23,	10,	B_KONAMI_VRC4E)
+	INES20_BOARD(0,		1,		B_NINTENDO_NROM_SRAM)			//nrom +	save ram
+	INES20_BOARD(0,		15,		B_NES_DISK_SYSTEM)
+	INES20_BOARD(1,		5,		B_NINTENDO_SxROM)
+	INES20_BOARD(4,		1,		B_NINTENDO_HxROM)
+	INES20_BOARD(21,	1,		B_KONAMI_VRC4A)
+	INES20_BOARD(21,	2,		B_KONAMI_VRC4C)
+	INES20_BOARD(23,	10,		B_KONAMI_VRC4E)
 	INES20_BOARD(25,	1,		B_KONAMI_VRC4B)
 	INES20_BOARD(25,	3,		B_KONAMI_VRC4D)
 	INES20_BOARD(34,	1,		B_AVE_NINA_001)
@@ -49,6 +49,8 @@ INES20_BOARD_END()
 int mapper_get_mapperid_ines20(int num,int sub)
 {
 	int i;
+
+	log_printf("mapper_get_mapperid_ines20: %d.%d\n",num,sub);
 	
 	//no submapper, just use the ines function
 	if(sub == 0) {
