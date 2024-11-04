@@ -20,6 +20,10 @@ Win32 API version.  Here are some example command lines for building:
 To build using the default options and autodetect your OS.
 
     make
+
+To build with SDL2 (experimental and still needs SDL1 libraries for input and sounds, linux only)
+
+    make USESDL=2
       
 For building the Win32 API version.
 
