@@ -44,6 +44,12 @@ SOURCE_SYSTEM_SDL += source/system/sdl/main.c source/system/sdl/system.c
 SOURCE_SYSTEM_SDL += source/system/sdl/console/console.c source/system/sdl/console/font.c
 SOURCE_SYSTEM_SDL += source/system/sdl/console/fontdata.c source/system/sdl/console/linebuffer.c
 
+# sdl2 system files
+SOURCE_SYSTEM_SDL2 = source/system/sdl2/video.c source/system/sdl2/input.c source/system/sdl2/sound.c
+SOURCE_SYSTEM_SDL2 += source/system/sdl2/main.c source/system/sdl2/system.c
+SOURCE_SYSTEM_SDL2 += source/system/sdl2/console/console.c source/system/sdl2/console/font.c
+SOURCE_SYSTEM_SDL2 += source/system/sdl2/console/fontdata.c source/system/sdl2/console/linebuffer.c
+
 # win32 system files
 SOURCE_SYSTEM_WIN32 = source/system/win32/video.c source/system/win32/input.c source/system/win32/sound.c
 SOURCE_SYSTEM_WIN32 += source/system/win32/system.c source/system/win32/main.c source/system/win32/mainwnd.c
@@ -95,9 +101,15 @@ ifeq ($(OSTARGET),WIN32)
 endif
 
 ifeq ($(OSTARGET),LINUX)
-	SOURCES += $(SOURCE_SYSTEM_SDL) $(SOURCE_SYSTEM_SDL_LINUX) $(SOURCE_SYSTEM_COMMON)
-	LIBS += -lSDL -lm
-	TARGET = $(OUTPUT)
+	ifeq ($(USESDL),2)
+		SOURCES += $(SOURCE_SYSTEM_SDL2) $(SOURCE_SYSTEM_SDL_LINUX) $(SOURCE_SYSTEM_COMMON)
+		LIBS += -lSDL -lSDL2 -lm
+		TARGET = $(OUTPUT)
+	else
+		SOURCES += $(SOURCE_SYSTEM_SDL) $(SOURCE_SYSTEM_SDL_LINUX) $(SOURCE_SYSTEM_COMMON)
+		LIBS += -lSDL -lm
+		TARGET = $(OUTPUT)
+	endif
 endif
 
 ifeq ($(OSTARGET),OSX)

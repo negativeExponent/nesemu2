@@ -11,7 +11,7 @@ ifeq ($(OSTARGET),UNKNOWN)
 	else
 		UNAME = $(shell uname -s)
 		ifeq ($(UNAME),Linux)
-			USESDL = 1
+			USESDL ?= 1
 			OSTARGET = LINUX
 		endif
 		ifeq ($(UNAME),Darwin)
@@ -30,6 +30,9 @@ ifeq ($(USE_CPU_UNDOC),1)
 endif
 ifeq ($(USE_QUICK_SPRITES),1)
 	DEFINES += -DQUICK_SPRITES
+endif
+ifeq ($(USESDL),2)
+	DEFINES += -DSDL -DSDL2
 endif
 ifeq ($(USESDL),1)
 	DEFINES += -DSDL
