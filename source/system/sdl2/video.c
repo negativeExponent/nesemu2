@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "misc/log.h"
 #include "palette/palette.h"
 #include "nes/nes.h"
@@ -31,8 +31,11 @@
 #include "system/common/filters.h"
 
 //system related variables
-static SDL_Surface *surface = 0;
-static int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+static SDL_Window *sdlwindow;   /*SDL screen*/
+static SDL_Renderer *sdlrender; /*SDL GPU frame buf*/
+static SDL_Texture *sdltexture; /*SDL GPU transfer buf*/
+static SDL_Surface *sdlsurface = 0;
+static int flags = SDL_WINDOW_SHOWN;
 static int screenw,screenh,screenbpp;
 static int screenscale;
 
@@ -114,9 +117,10 @@ static int absolute_value(int v)
 	return((v < 0) ? (0 - v) : v);
 }
 
+#if 0
 int find_video_mode(int wantw,int wanth,int flags2,int *w,int *h)
 {
-	SDL_Rect **modes,*mode;
+	SDL_DisplayMode **modes,*mode;
 	int i,diffw[2],diffh[2];
 
 	//get list of modes from sdl
@@ -169,13 +173,11 @@ int find_video_mode(int wantw,int wanth,int flags2,int *w,int *h)
 
 	return(0);
 }
+#endif
 
 static int get_desktop_bpp()
 {
-	const SDL_VideoInfo *vi = SDL_GetVideoInfo();
-
-	log_printf("get_desktop_bpp:  current display mode is %d x %d, %d bpp\n",vi->current_w,vi->current_h,vi->vfmt->BitsPerPixel);
-	return(vi->vfmt->BitsPerPixel);
+	return(32);
 }
 
 int video_init()
@@ -192,12 +194,12 @@ int video_init()
 	memset(palettecache32,0,256*sizeof(u32));
 
 	//set screen info
-	flags &= ~SDL_FULLSCREEN;
-	flags |= config_get_bool("video.fullscreen") ? SDL_FULLSCREEN : 0;
+	flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+	flags |= config_get_bool("video.fullscreen") ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
 	screenscale = config_get_int("video.scale");
 
 	//fullscreen mode
-	if(flags & SDL_FULLSCREEN) {
+	if(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
 		screenscale = (screenscale < 2) ? 2 : screenscale;
 		screenbpp = 32;
 	}
@@ -224,27 +226,42 @@ int video_init()
 	screenh = filter->minheight / filter->minscale * screenscale;
 
 	//fullscreen mode
-	if(flags & SDL_FULLSCREEN) {
+	#if 0
+	if(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
 		int w,h;
 
-		if(find_video_mode(screenw,screenh,flags | SDL_FULLSCREEN,&w,&h) == 0) {
+		if(find_video_mode(screenw,screenh,flags | SDL_WINDOW_FULLSCREEN_DESKTOP,&w,&h) == 0) {
 			screenw = w;
 			screenh = h;
 			log_printf("video_init:  best display mode:  %d x %d\n",w,h);
 		}
 	}
+	#endif
 
 	//initialize surface/window
-	surface = SDL_SetVideoMode(screenw,screenh,screenbpp,flags);
-	SDL_WM_SetCaption("nesemu2",NULL);
+	//sdlsurface = SDL_SetVideoMode(screenw,screenh,screenbpp,flags);
+	//SDL_WM_SetCaption("nesemu2",NULL);
+	sdlwindow = SDL_CreateWindow("nesemu2",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		screenh, screenh, flags);
+	sdlrender = SDL_CreateRenderer(sdlwindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+	SDL_SetWindowTitle(sdlwindow, "nesemu2");
+	sdlsurface = SDL_CreateRGBSurface(0, screenw, screenh, 32,
+		0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+
 	SDL_ShowCursor(0);
-	get_surface_info(surface);
+	get_surface_info(sdlsurface);
+
+	sdltexture = SDL_CreateTexture(sdlrender,SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING, screenw, screenh);
 
 	//allocate memory for temp screen buffer
 	screen = (u32*)mem_realloc(screen,256 * (240 + 16) * (screenbpp / 8) * 4);
 
 	//print information
-	log_printf("video initialized:  %dx%dx%d %s\n",surface->w,surface->h,surface->format->BitsPerPixel,(flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed");
+	log_printf("video initialized:  %dx%dx%d %s\n",sdlsurface->w,sdlsurface->h,sdlsurface->format->BitsPerPixel,(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) ? "fullscreen" : "windowed");
 
 	return(0);
 }
@@ -259,6 +276,16 @@ void video_kill()
 		mem_free(nesscreen);
 	screen = 0;
 	nesscreen = 0;
+	
+	SDL_FreeSurface(sdlsurface);
+	SDL_DestroyTexture(sdltexture);
+	SDL_DestroyRenderer(sdlrender);
+	SDL_DestroyWindow(sdlwindow);
+
+	sdlsurface = 0;
+	sdltexture = 0;
+	sdlrender = 0;
+	sdlwindow = 0;
 }
 
 int video_reinit()
@@ -269,8 +296,6 @@ int video_reinit()
 
 void video_startframe()
 {
-	//lock sdl surface
-	SDL_LockSurface(surface);
 }
 
 void video_endframe()
@@ -278,12 +303,12 @@ void video_endframe()
 	u64 t;
 
 	//draw everything
-	drawfunc(surface->pixels,surface->pitch,screen,256*4,256,240);
-	console_draw((u32*)surface->pixels,surface->pitch,screenh);
+	drawfunc(sdlsurface->pixels,sdlsurface->pitch,screen,256*4,256,240);
+	console_draw((u32*)sdlsurface->pixels,sdlsurface->pitch,screenh);
 
-	//flip buffers and unlock surface
-	SDL_Flip(surface);
-	SDL_UnlockSurface(surface);
+	SDL_UpdateTexture(sdltexture, NULL, sdlsurface->pixels, sdlsurface->pitch);
+	SDL_RenderCopy(sdlrender, sdltexture, NULL, NULL);
+	SDL_RenderPresent(sdlrender);
 
 	//simple frame limiter
 	if(config_get_bool("video.framelimit")) {
@@ -375,7 +400,7 @@ void video_setpalette(palette_t *p)
 	for(j=0;j<8;j++) {
 		for(i=0;i<256;i++) {
 			e = &p->pal[j][i & 0x3F];
-			palette32[j][i] = (e->r << rshift) | (e->g << gshift) | (e->b << bshift);
+			palette32[j][i] = (e->r << 16) | (e->g << 8) | (e->b << 0);
 		}
 	}
 
