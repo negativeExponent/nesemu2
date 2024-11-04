@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "system/input.h"
 #include "system/system.h"
 #include "misc/config.h"
@@ -38,7 +38,7 @@ required variables:
 //these global variables provide information for the device input code
 int joyx,joyy;			//x and y coords for paddle/mouse
 u8 joytrigger;
-u8 joykeys[370];		//keyboard state
+u8 joykeys[370];		//keyboard state, saves SDL_SCANCODE_*
 int joyconfig[4][8];	//joypad button configuration
 
 // this will map joystick axises/buttons to unused keyboard buttons
@@ -49,7 +49,6 @@ int input_init()
 {
 	int i;
 
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 	for(i=0;i<20;i++) {
 		joystate[i] = 0;
 	}
@@ -63,7 +62,7 @@ void input_kill()
 
 void input_poll()
 {
-	Uint8 *keystate = SDL_GetKeyState(NULL);
+	const Uint8 *keystate = SDL_GetKeyboardState(NULL);
 	int i,x,y;
 
 	//need to update mousex/mousey/mousebuttons here
@@ -73,11 +72,13 @@ void input_poll()
 
 	//now update key/mouse state, the input device logic will
 	//decode the key/mouse data into the correct input for the nes
-	for(i=0;i<300;i++)
+	for(i=0;i<350;i++)
 		joykeys[i] = keystate[i];
 
 	//put joypad buttons in the struct
 	for(i=0;i<20;i++) {
+		/* send keyboard inputs to NES */
+		/* TODO: implement gamepad inputs */
 		joykeys[FIRSTJOYSTATEKEY + i] = joystate[i];
 	}
 }

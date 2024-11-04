@@ -31,10 +31,10 @@
 #include "system/common/filters.h"
 
 //system related variables
-static SDL_Window *sdlwindow;   /*SDL screen*/
-static SDL_Renderer *sdlrender; /*SDL GPU frame buf*/
-static SDL_Texture *sdltexture; /*SDL GPU transfer buf*/
-static SDL_Surface *sdlsurface = 0;
+static SDL_Window *window = 0;
+static SDL_Renderer *renderer = 0;
+static SDL_Texture *texture = 0;
+static SDL_Surface *surface = 0;
 static int flags = SDL_WINDOW_SHOWN;
 static int screenw,screenh,screenbpp;
 static int screenscale;
@@ -99,9 +99,9 @@ static void get_surface_info(SDL_Surface *s)
 
 	log_printf("get_surface_info:  sdl surface info:\n");
 	log_printf("  bits per pixel:  %d\n",pf->BitsPerPixel);
-	log_printf("    red:    mask:  %08X    shift:  %d    loss: %d\n",pf->Rmask,pf->Rshift,pf->Rloss);
-	log_printf("    green:  mask:  %08X    shift:  %d    loss: %d\n",pf->Gmask,pf->Gshift,pf->Gloss);
-	log_printf("    blue:   mask:  %08X    shift:  %d    loss: %d\n",pf->Bmask,pf->Bshift,pf->Bloss);
+	log_printf("    red:    mask:  %08X    shift:  %2d    loss: %d\n",pf->Rmask,pf->Rshift,pf->Rloss);
+	log_printf("    green:  mask:  %08X    shift:  %2d    loss: %d\n",pf->Gmask,pf->Gshift,pf->Gloss);
+	log_printf("    blue:   mask:  %08X    shift:  %2d    loss: %d\n",pf->Bmask,pf->Bshift,pf->Bloss);
 
 	rshift = pf->Rshift;
 	gshift = pf->Gshift;
@@ -157,27 +157,26 @@ int video_init()
 	screenh = filter->minheight / filter->minscale * screenscale;
 
 	//initialize surface/window
-	sdlwindow = SDL_CreateWindow("nesemu2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenh, screenh, flags);
-	sdlrender = SDL_CreateRenderer(sdlwindow, -1, 0);
-	SDL_RenderSetLogicalSize(sdlrender, screenw, screenh);
-	SDL_SetRenderDrawColor(sdlrender, 0, 0, 0, 0);	/* select color (black) */
-	SDL_RenderClear(sdlrender);
+	window = SDL_CreateWindow("nesemu2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenw, screenh, flags);
+	renderer = SDL_CreateRenderer(window, -1, 0);
+	SDL_RenderSetLogicalSize(renderer, 256, 240);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);	/* select color (black) */
+	SDL_RenderClear(renderer);
 
-	SDL_SetWindowTitle(sdlwindow, "nesemu2");
-	sdlsurface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_ARGB8888);
+	SDL_SetWindowTitle(window, "nesemu2");
+	surface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_ARGB8888);
 	
-
 	SDL_ShowCursor(0);
-	get_surface_info(sdlsurface);
+	get_surface_info(surface);
 
-	sdltexture = SDL_CreateTexture(sdlrender,SDL_PIXELFORMAT_ARGB8888,
+	texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_ARGB8888,
 		SDL_TEXTUREACCESS_STREAMING, screenw, screenh);
 
 	//allocate memory for temp screen buffer
 	screen = (u32*)mem_realloc(screen,256 * (240 + 16) * (screenbpp / 8) * 4);
 
 	//print information
-	log_printf("video initialized:  %dx%dx%d %s\n",sdlsurface->w,sdlsurface->h,sdlsurface->format->BitsPerPixel,(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) ? "fullscreen" : "windowed");
+	log_printf("video initialized:  %dx%dx%d %s\n",surface->w,surface->h,surface->format->BitsPerPixel,(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) ? "fullscreen" : "windowed");
 
 	return(0);
 }
@@ -193,15 +192,15 @@ void video_kill()
 	screen = 0;
 	nesscreen = 0;
 	
-	SDL_FreeSurface(sdlsurface);
-	SDL_DestroyTexture(sdltexture);
-	SDL_DestroyRenderer(sdlrender);
-	SDL_DestroyWindow(sdlwindow);
+	SDL_FreeSurface(surface);
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
 
-	sdlsurface = 0;
-	sdltexture = 0;
-	sdlrender = 0;
-	sdlwindow = 0;
+	surface = 0;
+	texture = 0;
+	renderer = 0;
+	window = 0;
 }
 
 int video_reinit()
@@ -219,13 +218,13 @@ void video_endframe()
 	u64 t;
 
 	//draw everything
-	drawfunc(sdlsurface->pixels,sdlsurface->pitch,screen,256*4,256,240);
-	console_draw((u32*)sdlsurface->pixels,sdlsurface->pitch,screenh);
+	drawfunc(surface->pixels,surface->pitch,screen,256*4,256,240);
+	console_draw((u32*)surface->pixels,surface->pitch,screenh);
 
-	SDL_UpdateTexture(sdltexture, NULL, sdlsurface->pixels, sdlsurface->pitch);
-	SDL_RenderClear(sdlrender);
-	SDL_RenderCopy(sdlrender, sdltexture, NULL, NULL);
-	SDL_RenderPresent(sdlrender);
+	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
+	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
 
 	//simple frame limiter
 	if(config_get_bool("video.framelimit")) {

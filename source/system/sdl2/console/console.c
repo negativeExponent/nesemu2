@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "emu/commands.h"
 #include "misc/log.h"
 #include "misc/memutil.h"
@@ -189,14 +189,14 @@ void console_update()
 {
 	static int keydown = 0;
 
-	if(joykeys[SDLK_BACKQUOTE] && (keydown & 1) == 0) {
+	if(joykeys[SDL_SCANCODE_GRAVE] && (keydown & 1) == 0) {
 		if(showing == 0)
 			console_show();
 		else
 			console_hide();
 		keydown |= 1;
 	}
-	else if(joykeys[SDLK_BACKQUOTE] == 0)
+	else if(joykeys[SDL_SCANCODE_GRAVE] == 0)
 		keydown &= ~1;
 	if(showing) {
 		if(ypos < height)	ypos += YPOS_STEP;

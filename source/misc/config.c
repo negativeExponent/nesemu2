@@ -159,6 +159,25 @@ static vars_t *config_get_defaults()
 	vars_set_string(ret,F_CONFIG,"input.port1",					"joypad1");
 	vars_set_string(ret,F_CONFIG,"input.expansion",				"none");
 
+#ifdef SDL2
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.a",				27 /* 'x' */);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.b",				29 /*'z'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.select",		 4 /*'a' */);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.start",		    22 /*'s'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.up",			82);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.down",			81);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.left",			80);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.right",			82);
+
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.a",				11 /*'h'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.b",				10 /*'g'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.select",		23 /*'t'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.start",			28 /*'y'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.up",			12 /*'i'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.down",			14 /*'k'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.left",			13 /*'j'*/);
+	vars_set_int   (ret,F_CONFIG,"input.joypad1.right",			15 /*'l'*/);
+#else
 	vars_set_int   (ret,F_CONFIG,"input.joypad0.a",				'x');
 	vars_set_int   (ret,F_CONFIG,"input.joypad0.b",				'z');
 	vars_set_int   (ret,F_CONFIG,"input.joypad0.select",		'a');
@@ -166,7 +185,7 @@ static vars_t *config_get_defaults()
 	vars_set_int   (ret,F_CONFIG,"input.joypad0.up",			273);
 	vars_set_int   (ret,F_CONFIG,"input.joypad0.down",			274);
 	vars_set_int   (ret,F_CONFIG,"input.joypad0.left",			276);
-	vars_set_int   (ret,F_CONFIG,"input.joypad0.right",		275);
+	vars_set_int   (ret,F_CONFIG,"input.joypad0.right",		275);	
 
 	vars_set_int   (ret,F_CONFIG,"input.joypad1.a",				'h');
 	vars_set_int   (ret,F_CONFIG,"input.joypad1.b",				'g');
@@ -176,6 +195,7 @@ static vars_t *config_get_defaults()
 	vars_set_int   (ret,F_CONFIG,"input.joypad1.down",			'k');
 	vars_set_int   (ret,F_CONFIG,"input.joypad1.left",			'j');
 	vars_set_int   (ret,F_CONFIG,"input.joypad1.right",		'l');
+#endif
 
 	vars_set_string(ret,F_CONFIG,"input.zapper.trigger",		"mb0");
 

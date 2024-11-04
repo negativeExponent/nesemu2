@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "types.h"
 #include "misc/log.h"
 #include "misc/config.h"
@@ -322,8 +322,6 @@ int sound_init()
 	}
 
 	log_printf("sound_init: Start initialization\n");
-	SDL_AudioDriverName(audio_driver,sizeof(audio_driver));
-	log_printf("sound_init: Driver is %s\n",audio_driver);
 	initialized_audio = 0;
 	sdl_xfer_samples = SDL_XFER_SAMPLES;
 	stream_in_initialized = 0;
@@ -339,7 +337,7 @@ int sound_init()
 
 	if(SDL_OpenAudio(&aspec,&obtained) < 0)
 		goto cant_start_audio;
-
+	
 	initialized_audio = 1;
 	snd_enabled = 1;
 
