@@ -87,7 +87,7 @@ void system_checkevents()
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				console_keyevent(event.key.type,event.key.keysym.sym);
+				console_keyevent(event.key.type,event.key.keysym.scancode);
 				break;
 			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
 				if (event.jaxis.axis == 0)

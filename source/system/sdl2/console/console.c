@@ -221,19 +221,19 @@ static int isignored(int ch)
 
 static int isletter(int ch)
 {
-	if (ch >= SDLK_a && ch <= SDLK_z)
+	if (ch >= SDL_SCANCODE_A && ch <= SDL_SCANCODE_Z)
 		return(1);
 	return(0);
 }
 
 static int isnumber(int ch)
 {
-	if (ch >= SDLK_0 && ch <= SDLK_9)
+	if (ch >= SDL_SCANCODE_0 && ch <= SDL_SCANCODE_9)
 		return(1);
 	return(0);
 }
 
-void console_keyevent(int state,int sym)
+void console_keyevent(int state,int scancode)
 {
 	int modstate = SDL_GetModState();
 	int isshift = modstate & (KMOD_LSHIFT | KMOD_RSHIFT);
@@ -249,22 +249,22 @@ void console_keyevent(int state,int sym)
 		iscaps ^= KMOD_CAPS;
 
 	//cursor left
-	if (sym == SDLK_LEFT) {
+	if (scancode == SDL_SCANCODE_LEFT) {
 		if (inputbufpos)
 			inputbufpos--;
 		return;
 	}
 
 	//cursor right
-	else if (sym == SDLK_RIGHT) {
+	else if (scancode == SDL_SCANCODE_RIGHT) {
 		if (inputbufpos < inputbuflen)
 			inputbufpos++;
 		return;
 	}
 
 	//if this is a letter
-	else if(isletter(sym) || isnumber(sym)) {
-		ch = sym - SDLK_a;
+	else if(isletter(scancode) || isnumber(scancode)) {
+		ch = scancode - SDL_SCANCODE_A;
 		if(iscaps)
 			ch += 'A';
 		else
@@ -272,12 +272,12 @@ void console_keyevent(int state,int sym)
 	}
 
 	//if this is a printable character and we are not ignoring it
-//	else if(isprint(sym) && isignored(sym) == 0) {
-//		ch = sym;
+//	else if(isprint(scancode) && isignored(scancode) == 0) {
+//		ch = scancode;
 //	}
 
 	//backspace
-	else if(sym == SDLK_BACKSPACE) {
+	else if(scancode == SDL_SCANCODE_BACKSPACE) {
 		if(inputbufpos) {
 			inputbuflen--;
 			inputbufpos--;
@@ -289,7 +289,7 @@ void console_keyevent(int state,int sym)
 		return;
 	}
 
-	else if(sym == SDLK_RETURN) {
+	else if(scancode == SDL_SCANCODE_RETURN) {
 		command_execute(inputbuf);
 		inputbufpos = inputbuflen = 0;
 		memset(inputbuf,0,1024);
@@ -298,7 +298,7 @@ void console_keyevent(int state,int sym)
 
 	//unknown key, ignore it
 	else {
-//		log_printf("ignored key $%02X (%c)",sym,sym);
+//		log_printf("ignored key $%02X (%c)",scancode,scancode);
 		return;
 	}
 
