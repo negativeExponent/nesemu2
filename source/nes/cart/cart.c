@@ -136,6 +136,10 @@ cart_t *cart_load_patched(const char *filename,const char *patchfilename, u8 *da
 	int format,n;
 	memfile_t *file;
 
+	n = 1; /* 1=error, 0=sucess */
+	file = 0;
+	format = FORMAT_UNKNOWN;
+
 	// try to load from memory
 	if (data && datasize) {
 		log_printf("cart_load: load from memory\n");
