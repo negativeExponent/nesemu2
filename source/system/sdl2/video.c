@@ -111,75 +111,6 @@ static void get_surface_info(SDL_Surface *s)
 	bloss = pf->Bloss;
 }
 
-//return absolute value
-static int absolute_value(int v)
-{
-	return((v < 0) ? (0 - v) : v);
-}
-
-#if 0
-int find_video_mode(int wantw,int wanth,int flags2,int *w,int *h)
-{
-	SDL_DisplayMode **modes,*mode;
-	int i,diffw[2],diffh[2];
-
-	//get list of modes from sdl
-	modes = SDL_ListModes(NULL, flags2);
-	*w = *h = 0;
-
-	//if nothing returned
-	if(modes == (SDL_Rect**)0) {
-		log_printf("find_video_mode:  fatal error:  no modes available\n");
-		return(1);
-	}
-
-	//see if any mode is available (windowed mode)
-	if(modes == (SDL_Rect**)-1) {
-		log_printf("find_video_mode:  all resolutions available\n");
-		*w = wantw;
-		*h = wanth;
-		return(0);
-	}
-
-	//output modes
-	log_printf("find_video_mode:  available modes:\n");
-	for(i=0;modes[i];i++) {
-		log_printf("find_video_mode:    %d x %d\n",modes[i]->w,modes[i]->h);
-	}
-
-	//search for closest video mode
-	for(mode=0,i=0;modes[i];i++) {
-		if(modes[i]->w >= wantw && modes[i]->h >= wanth) {
-			if(mode == 0) {
-				mode = modes[i];
-			}
-			else {
-				diffw[0] = absolute_value(mode->w - wantw);
-				diffh[0] = absolute_value(mode->h - wanth);
-				diffw[1] = absolute_value(modes[i]->w - wantw);
-				diffh[1] = absolute_value(modes[i]->h - wanth);
-				if((diffw[1] + diffh[1]) < (diffw[0] + diffh[0])) {
-					mode = modes[i];
-				}
-			}
-		}
-	}
-
-	//if a mode was found set the return variables
-	if(mode) {
-		*w = mode->w;
-		*h = mode->h;
-	}
-
-	return(0);
-}
-#endif
-
-static int get_desktop_bpp()
-{
-	return(32);
-}
-
 int video_init()
 {
 	if(nesscreen == 0)
@@ -206,7 +137,7 @@ int video_init()
 
 	//windowed mode
 	else {
-		screenbpp = get_desktop_bpp();
+		screenbpp = 32;
 	}
 
 	//initialize the video filters
@@ -225,31 +156,16 @@ int video_init()
 	screenw = filter->minwidth / filter->minscale * screenscale;
 	screenh = filter->minheight / filter->minscale * screenscale;
 
-	//fullscreen mode
-	#if 0
-	if(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-		int w,h;
-
-		if(find_video_mode(screenw,screenh,flags | SDL_WINDOW_FULLSCREEN_DESKTOP,&w,&h) == 0) {
-			screenw = w;
-			screenh = h;
-			log_printf("video_init:  best display mode:  %d x %d\n",w,h);
-		}
-	}
-	#endif
-
 	//initialize surface/window
-	//sdlsurface = SDL_SetVideoMode(screenw,screenh,screenbpp,flags);
-	//SDL_WM_SetCaption("nesemu2",NULL);
-	sdlwindow = SDL_CreateWindow("nesemu2",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		screenh, screenh, flags);
-	sdlrender = SDL_CreateRenderer(sdlwindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	sdlwindow = SDL_CreateWindow("nesemu2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenh, screenh, flags);
+	sdlrender = SDL_CreateRenderer(sdlwindow, -1, 0);
+	SDL_RenderSetLogicalSize(sdlrender, screenw, screenh);
+	SDL_SetRenderDrawColor(sdlrender, 0, 0, 0, 0);	/* select color (black) */
+	SDL_RenderClear(sdlrender);
 
 	SDL_SetWindowTitle(sdlwindow, "nesemu2");
-	sdlsurface = SDL_CreateRGBSurface(0, screenw, screenh, 32,
-		0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+	sdlsurface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_ARGB8888);
+	
 
 	SDL_ShowCursor(0);
 	get_surface_info(sdlsurface);
@@ -307,6 +223,7 @@ void video_endframe()
 	console_draw((u32*)sdlsurface->pixels,sdlsurface->pitch,screenh);
 
 	SDL_UpdateTexture(sdltexture, NULL, sdlsurface->pixels, sdlsurface->pitch);
+	SDL_RenderClear(sdlrender);
 	SDL_RenderCopy(sdlrender, sdltexture, NULL, NULL);
 	SDL_RenderPresent(sdlrender);
 
@@ -400,7 +317,7 @@ void video_setpalette(palette_t *p)
 	for(j=0;j<8;j++) {
 		for(i=0;i<256;i++) {
 			e = &p->pal[j][i & 0x3F];
-			palette32[j][i] = (e->r << 16) | (e->g << 8) | (e->b << 0);
+			palette32[j][i] = (e->r << rshift) | (e->g << gshift) | (e->b << bshift);
 		}
 	}
 
