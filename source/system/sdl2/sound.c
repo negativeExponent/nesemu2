@@ -56,9 +56,13 @@ static void         sdl_destroy_buffers(void);
 static void         sdl_cleanup_audio();
 static void         SDLCALL sdl_callback(void *userdata, Uint8 *stream, int len);
 
+static SDL_AudioDeviceID sdl_audio;
+
 static void sdl_callback(void *userdata, Uint8 *stream, int len)
 {
 	int len1, len2, sb_in;
+
+	memset(stream, 0, len);
 
 	sb_in = stream_buffer_in;
 	if (stream_loop)
@@ -225,7 +229,7 @@ static INLINE void update_audio_stream(s16 *buffer, int samples_this_frame)
 			log_printf("write_position = %d\n", (int)write_position);
 
 			// start playing
-			SDL_PauseAudio(0);
+			SDL_PauseAudioDevice(sdl_audio, 0);
 
 			stream_in_initialized = 1;
 		}
@@ -335,13 +339,15 @@ int sound_init()
 	aspec.callback = sdl_callback;
 	aspec.userdata = 0;
 
-	if(SDL_OpenAudio(&aspec,&obtained) < 0)
+	sdl_audio = SDL_OpenAudioDevice(NULL, 0, &aspec, &obtained, 0);
+	if(!sdl_audio)
 		goto cant_start_audio;
 	
 	initialized_audio = 1;
 	snd_enabled = 1;
 
-	log_printf("sound_init: frequency: %d, channels: %d, samples: %d\n",obtained.freq,obtained.channels,obtained.samples);
+	log_printf("sound_init: audio requested: frequency: %d, channels: %d, samples: %d\n",aspec.freq,aspec.channels,aspec.samples);
+	log_printf("sound_init: audio obtained:  frequency: %d, channels: %d, samples: %d\n",obtained.freq,obtained.channels,obtained.samples);
 
 	sdl_xfer_samples = obtained.samples;
 
@@ -358,6 +364,7 @@ int sound_init()
 		goto cant_create_buffers;
 
 	log_printf("sound_init: End initialization, frame latency = %d\n",audio_latency);
+	
 	return(0);
 
 	// error handling
@@ -371,7 +378,7 @@ void sound_kill()
 {
 	if(initialized_audio) {
 		log_printf("sound_kill: closing audio\n");
-		SDL_CloseAudio();
+		SDL_CloseAudioDevice(sdl_audio);
 		sdl_cleanup_audio();
 	}
 }
@@ -379,13 +386,13 @@ void sound_kill()
 void sound_play()
 {
 	if(initialized_audio)
-		SDL_PauseAudio(0);
+		SDL_PauseAudioDevice(sdl_audio, 0);
 }
 
 void sound_pause()
 {
 	if(initialized_audio)
-		SDL_PauseAudio(1);
+		SDL_PauseAudioDevice(sdl_audio, 1);
 }
 
 void sound_update(void *buf,int size)
