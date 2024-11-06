@@ -25,17 +25,18 @@
 #include "system/system.h"
 #include "system/video.h"
 #include "system/win32/resource.h"
-#include "system/sdl/console/console.h"
+#include "system/sdl2/console/console.h"
 #include "misc/memutil.h"
 #include "misc/config.h"
 #include "system/common/filters.h"
 
 //system related variables
-static SDL_Window *window = 0;
-static SDL_Renderer *renderer = 0;
-static SDL_Texture *texture = 0;
-static SDL_Surface *surface = 0;
-static int flags = SDL_WINDOW_SHOWN;
+static SDL_Window *sdlWindow = 0;
+static SDL_Renderer *sdlRenderer = 0;
+static SDL_Texture *sdlTexture = 0;
+static SDL_Surface *sdlSurface = 0;
+
+static int flags = SDL_WINDOW_OPENGL;
 static int screenw,screenh,screenbpp;
 static int screenscale;
 
@@ -113,6 +114,11 @@ static void get_surface_info(SDL_Surface *s)
 
 int video_init()
 {
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+		log_printf("video_init: Initialization failed. SDL error: %s\n", SDL_GetError());
+		return(1);
+	}
+
 	if(nesscreen == 0)
 		nesscreen = (u8*)mem_alloc(256 * (240 + 16));
 
@@ -156,27 +162,37 @@ int video_init()
 	screenw = filter->minwidth / filter->minscale * screenscale;
 	screenh = filter->minheight / filter->minscale * screenscale;
 
-	//initialize surface/window
-	window = SDL_CreateWindow("nesemu2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenw, screenh, flags);
-	renderer = SDL_CreateRenderer(window, -1, 0);
-	SDL_RenderSetLogicalSize(renderer, 256, 240);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);	/* select color (black) */
-	SDL_RenderClear(renderer);
+	//initialize sdlSurface/sdlWindow
+	sdlWindow = SDL_CreateWindow("nesemu2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenw, screenh, flags);
 
-	SDL_SetWindowTitle(window, "nesemu2");
-	surface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_ARGB8888);
+	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+	if(sdlRenderer == NULL) {
+		log_printf("video_init: failed to create accelerated renderer, %s\n", SDL_GetError());
+		log_printf("video_init: trying to create software renderer\n");
+		sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_SOFTWARE);
+		if(sdlRenderer == NULL)
+			log_printf("video_init: failed to create renderer, %s\n", SDL_GetError());
+		return(1);
+	}
+	SDL_RenderSetLogicalSize(sdlRenderer, 256, 240);	/* select color (black) */
+
+	sdlSurface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_ARGB8888);
 	
 	SDL_ShowCursor(0);
-	get_surface_info(surface);
+	get_surface_info(sdlSurface);
 
-	texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_ARGB8888,
-		SDL_TEXTUREACCESS_STREAMING, screenw, screenh);
+	sdlTexture = SDL_CreateTexture(sdlRenderer,SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, screenw, screenh);
+
+	if (sdlTexture == NULL) {
+		log_printf("video_init: failed to create texture: %i x %i\n", screenw, screenh);
+		return(1);
+	}
 
 	//allocate memory for temp screen buffer
 	screen = (u32*)mem_realloc(screen,256 * (240 + 16) * (screenbpp / 8) * 4);
 
 	//print information
-	log_printf("video initialized:  %dx%dx%d %s\n",surface->w,surface->h,surface->format->BitsPerPixel,(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) ? "fullscreen" : "windowed");
+	log_printf("video initialized:  %dx%dx%d %s\n",sdlSurface->w,sdlSurface->h,sdlSurface->format->BitsPerPixel,(flags & SDL_WINDOW_FULLSCREEN_DESKTOP) ? "fullscreen" : "windowed");
 
 	return(0);
 }
@@ -192,15 +208,15 @@ void video_kill()
 	screen = 0;
 	nesscreen = 0;
 	
-	SDL_FreeSurface(surface);
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+	SDL_FreeSurface(sdlSurface);
+	SDL_DestroyTexture(sdlTexture);
+	SDL_DestroyRenderer(sdlRenderer);
+	SDL_DestroyWindow(sdlWindow);
 
-	surface = 0;
-	texture = 0;
-	renderer = 0;
-	window = 0;
+	sdlSurface = 0;
+	sdlTexture = 0;
+	sdlRenderer = 0;
+	sdlWindow = 0;
 }
 
 int video_reinit()
@@ -211,6 +227,7 @@ int video_reinit()
 
 void video_startframe()
 {
+	SDL_LockSurface(sdlSurface);
 }
 
 void video_endframe()
@@ -218,13 +235,14 @@ void video_endframe()
 	u64 t;
 
 	//draw everything
-	drawfunc(surface->pixels,surface->pitch,screen,256*4,256,240);
-	console_draw((u32*)surface->pixels,surface->pitch,screenh);
+	drawfunc(sdlSurface->pixels,sdlSurface->pitch,screen,256*4,256,240);
+	console_draw((u32*)sdlSurface->pixels,sdlSurface->pitch,screenh);
 
-	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
-	SDL_RenderPresent(renderer);
+	SDL_UnlockSurface(sdlSurface);
+	SDL_UpdateTexture(sdlTexture, NULL, sdlSurface->pixels, sdlSurface->pitch);
+	SDL_RenderClear(sdlRenderer);
+	SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+	SDL_RenderPresent(sdlRenderer);
 
 	//simple frame limiter
 	if(config_get_bool("video.framelimit")) {
@@ -232,25 +250,6 @@ void video_endframe()
 			t = system_gettick();
 		} while((double)(t - lasttime) < interval);
 		lasttime = t;
-	}
-}
-
-//this handles lines for gui/status messages
-void video_updateline(int line,u8 *s)
-{
-	u32 *dest = screen + (line * 256);
-	int i;
-
-	memcpy(nesscreen + (line * 256),s,256);
-	if(line >= 8 && line < 232) {
-		for(i=0;i<256;i++) {
-			*dest++ = palettecache32[*s++];
-		}
-	}
-	else {
-		for(i=0;i<256;i++) {
-			*dest++ = 0;
-		}
 	}
 }
 

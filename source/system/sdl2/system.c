@@ -31,7 +31,7 @@
 #include "system/video.h"
 #include "system/input.h"
 #include "system/sound.h"
-#include "system/sdl/console/console.h"
+#include "system/sdl2/console/console.h"
 #include "nes/nes.h"
 #include "nes/state/state.h"
 #include "misc/paths.h"
@@ -42,25 +42,17 @@
 	#define _MAX_PATH 4096
 #endif
 
-static SDL_Joystick *joystick = 0;
-
 int system_init()
 {
-	if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK)) {
-		printf("error at sdl init!\n");
+	if(SDL_Init(SDL_INIT_VIDEO)) {
+		printf("error at sdl init! %s\n");
 		return(1);
-	}
-	if(SDL_NumJoysticks() > 0) {
-		SDL_JoystickEventState(SDL_ENABLE);
-		joystick = SDL_JoystickOpen(0);
 	}
 	return(0);
 }
 
 void system_kill()
 {
-	if(joystick)
-		SDL_JoystickClose(joystick);
 	SDL_Quit();
 }
 

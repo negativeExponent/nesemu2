@@ -56,8 +56,6 @@ static void         sdl_destroy_buffers(void);
 static void         sdl_cleanup_audio();
 static void         SDLCALL sdl_callback(void *userdata, Uint8 *stream, int len);
 
-static SDL_AudioDeviceID sdl_audio;
-
 static void sdl_callback(void *userdata, Uint8 *stream, int len)
 {
 	int len1, len2, sb_in;
@@ -229,7 +227,7 @@ static INLINE void update_audio_stream(s16 *buffer, int samples_this_frame)
 			log_printf("write_position = %d\n", (int)write_position);
 
 			// start playing
-			SDL_PauseAudioDevice(sdl_audio, 0);
+			SDL_PauseAudio(0);
 
 			stream_in_initialized = 1;
 		}
@@ -316,7 +314,7 @@ int sound_init()
 {
 	int audio_latency;
 	SDL_AudioSpec aspec, obtained;
-	char audio_driver[16] = "";
+	const char *audio_driver;
 
 	if(config_get_bool("sound.enabled") == 0)
 		return(0);
@@ -326,6 +324,10 @@ int sound_init()
 	}
 
 	log_printf("sound_init: Start initialization\n");
+
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+		goto cant_start_audio;
+
 	initialized_audio = 0;
 	sdl_xfer_samples = SDL_XFER_SAMPLES;
 	stream_in_initialized = 0;
@@ -339,15 +341,15 @@ int sound_init()
 	aspec.callback = sdl_callback;
 	aspec.userdata = 0;
 
-	sdl_audio = SDL_OpenAudioDevice(NULL, 0, &aspec, &obtained, 0);
-	if(!sdl_audio)
+	if((SDL_OpenAudio(&aspec, &obtained)) < 0)
 		goto cant_start_audio;
 	
 	initialized_audio = 1;
 	snd_enabled = 1;
 
-	log_printf("sound_init: audio requested: frequency: %d, channels: %d, samples: %d\n",aspec.freq,aspec.channels,aspec.samples);
-	log_printf("sound_init: audio obtained:  frequency: %d, channels: %d, samples: %d\n",obtained.freq,obtained.channels,obtained.samples);
+	audio_driver = SDL_GetCurrentAudioDriver();
+	log_printf("sound_init: Driver is %s\n",audio_driver);
+	log_printf("sound_init: frequency: %d, channels: %d, samples: %d\n",obtained.freq,obtained.channels,obtained.samples);
 
 	sdl_xfer_samples = obtained.samples;
 
@@ -378,7 +380,8 @@ void sound_kill()
 {
 	if(initialized_audio) {
 		log_printf("sound_kill: closing audio\n");
-		SDL_CloseAudioDevice(sdl_audio);
+		SDL_CloseAudio();
+		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 		sdl_cleanup_audio();
 	}
 }
@@ -386,13 +389,13 @@ void sound_kill()
 void sound_play()
 {
 	if(initialized_audio)
-		SDL_PauseAudioDevice(sdl_audio, 0);
+		SDL_PauseAudio(0);
 }
 
 void sound_pause()
 {
 	if(initialized_audio)
-		SDL_PauseAudioDevice(sdl_audio, 1);
+		SDL_PauseAudio(1);
 }
 
 void sound_update(void *buf,int size)

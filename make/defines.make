@@ -32,7 +32,7 @@ ifeq ($(USE_QUICK_SPRITES),1)
 	DEFINES += -DQUICK_SPRITES
 endif
 ifeq ($(USESDL),2)
-	DEFINES += -DSDL -DSDL2
+	DEFINES += -DSDL2
 endif
 ifeq ($(USESDL),1)
 	DEFINES += -DSDL

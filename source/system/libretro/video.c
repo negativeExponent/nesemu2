@@ -167,25 +167,6 @@ void video_endframe()
 	console_draw((u32*)pixel32,screenw*sizeof(u32),screenh);
 }
 
-//this handles lines for gui/status messages
-void video_updateline(int line,u8 *s)
-{
-	u32 *dest = screen + (line * 256);
-	int i;
-
-	memcpy(nesscreen + (line * 256),s,256);
-	if(line >= 8 && line < 232) {
-		for(i=0;i<256;i++) {
-			*dest++ = palettecache32[*s++];
-		}
-	}
-	else {
-		for(i=0;i<256;i++) {
-			*dest++ = 0;
-		}
-	}
-}
-
 //this handles pixels coming directly from the nes engine
 void video_updatepixel(int line,int pixel,u8 s)
 {

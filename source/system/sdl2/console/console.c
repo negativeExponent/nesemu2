@@ -25,9 +25,9 @@
 #include "palette/palette.h"
 #include "system/input.h"
 #include "system/video.h"
-#include "system/sdl/console/console.h"
-#include "system/sdl/console/font.h"
-#include "system/sdl/console/linebuffer.h"
+#include "system/sdl2/console/console.h"
+#include "system/sdl2/console/font.h"
+#include "system/sdl2/console/linebuffer.h"
 
 #define YPOS_STEP 13
 

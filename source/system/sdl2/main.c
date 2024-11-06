@@ -35,7 +35,7 @@
 #include "system/input.h"
 #include "palette/palette.h"
 #include "palette/generator.h"
-#include "system/sdl/console/console.h"
+#include "system/sdl2/console/console.h"
 
 //required
 char configfilename[1024] = CONFIG_FILENAME;
