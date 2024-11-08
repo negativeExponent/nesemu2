@@ -31,6 +31,9 @@ endif
 ifeq ($(USE_QUICK_SPRITES),1)
 	DEFINES += -DQUICK_SPRITES
 endif
+ifeq ($(USESDL),3)
+	DEFINES += -DSDL3
+endif
 ifeq ($(USESDL),2)
 	DEFINES += -DSDL2
 endif

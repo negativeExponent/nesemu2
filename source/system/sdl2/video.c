@@ -181,7 +181,7 @@ int video_init()
 	SDL_ShowCursor(0);
 	get_surface_info(sdlSurface);
 
-	sdlTexture = SDL_CreateTexture(sdlRenderer,SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, screenw, screenh);
+	sdlTexture = SDL_CreateTexture(sdlRenderer,SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, screenw, screenh);
 
 	if (sdlTexture == NULL) {
 		log_printf("video_init: failed to create texture: %i x %i\n", screenw, screenh);
