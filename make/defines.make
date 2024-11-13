@@ -11,7 +11,7 @@ ifeq ($(OSTARGET),UNKNOWN)
 	else
 		UNAME = $(shell uname -s)
 		ifeq ($(UNAME),Linux)
-			USESDL ?= 1
+			USESDL ?= 2
 			OSTARGET = LINUX
 		endif
 		ifeq ($(UNAME),Darwin)

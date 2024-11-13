@@ -109,7 +109,7 @@ ifeq ($(OSTARGET),WIN32)
 endif
 
 ifeq ($(OSTARGET),LINUX)
-	SOUND_OUTPUT = sdl2
+	SOUND_OUTPUT = pulse
 	SOUND_SRCDIR = source/system/sound_output/$(SOUND_OUTPUT)
 	SOUND_SOURCE = $(foreach dir, $(SOUND_SRCDIR), $(wildcard $(dir)/*.c))
 
