@@ -28,4 +28,15 @@ void sound_play();
 void sound_update(void *buffer,int length);
 void sound_setfps(int fps);
 
+#define SAMPLE_RATE			44100
+#define FRAMES_PER_SECOND	60
+#define CHANNELS		    1
+
+#define SAMPLE_SIZE         sizeof(s16)
+#define SAMPLES_PER_FRAME	(SAMPLE_RATE / FRAMES_PER_SECOND)
+#define BYTES_PER_FRAME     (SAMPLES_PER_FRAME * SAMPLE_SIZE)
+
+#define BUFFER_SIZE         SAMPLES_PER_FRAME
+#define MAX_AUDIO_LATENCY	4
+
 #endif

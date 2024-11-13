@@ -45,16 +45,18 @@ SOURCE_SYSTEM_SDL += source/system/sdl/console/console.c source/system/sdl/conso
 SOURCE_SYSTEM_SDL += source/system/sdl/console/fontdata.c source/system/sdl/console/linebuffer.c
 
 # sdl2 system files
-SOURCE_SYSTEM_SDL2 = source/system/sdl2/video.c source/system/sdl2/input.c source/system/sdl2/sound.c
+SOURCE_SYSTEM_SDL2 = source/system/sdl2/video.c source/system/sdl2/input.c
 SOURCE_SYSTEM_SDL2 += source/system/sdl2/main.c source/system/sdl2/system.c
 SOURCE_SYSTEM_SDL2 += source/system/sdl2/console/console.c source/system/sdl2/console/font.c
 SOURCE_SYSTEM_SDL2 += source/system/sdl2/console/fontdata.c source/system/sdl2/console/linebuffer.c
+#SOURCE_SYSTEM_SDL2 += source/system/sdl2/sound.c
 
 # sdl3 system files
-SOURCE_SYSTEM_SDL3 = source/system/sdl3/video.c source/system/sdl3/input.c source/system/sdl3/sound.c
+SOURCE_SYSTEM_SDL3 = source/system/sdl3/video.c source/system/sdl3/input.c
 SOURCE_SYSTEM_SDL3 += source/system/sdl3/main.c source/system/sdl3/system.c
 SOURCE_SYSTEM_SDL3 += source/system/sdl3/console/console.c source/system/sdl3/console/font.c
 SOURCE_SYSTEM_SDL3 += source/system/sdl3/console/fontdata.c source/system/sdl3/console/linebuffer.c
+#SOURCE_SYSTEM_SDL3 += source/system/sdl3/sound.c
 
 # win32 system files
 SOURCE_SYSTEM_WIN32 = source/system/win32/video.c source/system/win32/input.c source/system/win32/sound.c
@@ -107,13 +109,35 @@ ifeq ($(OSTARGET),WIN32)
 endif
 
 ifeq ($(OSTARGET),LINUX)
+	SOUND_OUTPUT = sdl2
+	SOUND_SRCDIR = source/system/sound_output/$(SOUND_OUTPUT)
+	SOUND_SOURCE = $(foreach dir, $(SOUND_SRCDIR), $(wildcard $(dir)/*.c))
+
+	ifeq ($(SOUND_OUTPUT), alsa)
+		LIBS += -lasound
+	endif
+	ifeq ($(SOUND_OUTPUT), libao)
+		LIBS += -lao
+	endif
+	ifeq ($(SOUND_OUTPUT), portaudio)
+		LIBS += -lportaudio
+	endif
+	ifeq ($(SOUND_OUTPUT), pulse)
+		LIBS += -lpulse -lpulse-simple
+	endif
+	ifeq ($(SOUND_OUTPUT), openal)
+		LIBS += -lopenal
+	endif
+
 	ifeq ($(USESDL),3)
 		SOURCES += $(SOURCE_SYSTEM_SDL3) $(SOURCE_SYSTEM_SDL_LINUX) $(SOURCE_SYSTEM_COMMON)
+		SOURCES += $(SOUND_SOURCE)
 		LIBS += -lSDL3 -lm
 		TARGET = $(OUTPUT)
 	else
 	ifeq ($(USESDL),2)
 		SOURCES += $(SOURCE_SYSTEM_SDL2) $(SOURCE_SYSTEM_SDL_LINUX) $(SOURCE_SYSTEM_COMMON)
+		SOURCES += $(SOUND_SOURCE)
 		LIBS += -lSDL2 -lm
 		TARGET = $(OUTPUT)
 	else

@@ -176,7 +176,7 @@ int video_init()
 	}
 	SDL_RenderSetLogicalSize(sdlRenderer, 256, 240);	/* select color (black) */
 
-	sdlSurface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_ARGB8888);
+	sdlSurface = SDL_CreateRGBSurfaceWithFormat(0, screenw, screenh, 32, SDL_PIXELFORMAT_XRGB8888);
 	
 	SDL_ShowCursor(0);
 	get_surface_info(sdlSurface);
