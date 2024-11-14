@@ -15,12 +15,26 @@
 static int initialized_audio = 0;
 
 static snd_pcm_t *handle;
+static u8 *silent_buffer;
+
+#define BITS_PER_SAMPLE 16
+#define LATENCY_MS 40
+
+// Calculate buffer size in bytes
+#define LATENCY_SECONDS (LATENCY_MS / 1000.0)
+#define BYTES_PER_SAMPLE (BITS_PER_SAMPLE / 8)
+#define BUFFER_SIZE_BYTES (LATENCY_SECONDS * SAMPLE_RATE * CHANNELS * BYTES_PER_SAMPLE)
+#define BUFFER_SIZE_FRAMES (BUFFER_SIZE_BYTES / BYTES_PER_SAMPLE)
+
+// Set period size as a fraction of buffer size (e.g., 1/4th)
+#define PERIOD_SIZE_FRAMES (BUFFER_SIZE_FRAMES / 4)
 
 int sound_init(void) {
 	snd_pcm_hw_params_t *params;
 	u32 val;
 	s32 dir = -1;
 	snd_pcm_uframes_t frames;
+	int i;
 
 	if(config_get_bool("sound.enabled") == 0)
 		return(0);
@@ -118,13 +132,13 @@ int sound_init(void) {
 	}
 
 	/* Set period size to settings.aica.BufferSize frames. */
-	frames = BUFFER_SIZE;
+	frames = PERIOD_SIZE_FRAMES;
 	rc = snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
 	if (rc < 0) {
 		log_printf("Error:snd_pcm_hw_params_set_buffer_size_near %s\n", snd_strerror(rc));
 		return(1);
 	}
-	frames *= 4;
+	frames = BUFFER_SIZE_FRAMES;
 	rc = snd_pcm_hw_params_set_buffer_size_near(handle, params, &frames);
 	if (rc < 0) {
 		log_printf("Error:snd_pcm_hw_params_set_buffer_size_near %s\n", snd_strerror(rc));
@@ -138,19 +152,62 @@ int sound_init(void) {
 		return(1);
 	}
 
+	    // Log ALSA configuration info after successful initialization
+    log_printf("ALSA Initialized Successfully with the following parameters:\n");
+
+    // Log sample rate
+    snd_pcm_hw_params_get_rate(params, &val, &dir);
+    log_printf("Sample Rate: %u Hz\n", val);
+
+    // Log number of channels
+    snd_pcm_hw_params_get_channels(params, &val);
+    log_printf("Channels: %u\n", val);
+
+    // Log buffer size (in frames)
+    snd_pcm_hw_params_get_buffer_size(params, &frames);
+    log_printf("Buffer Size: %lu frames\n", frames);
+
+    // Log period size (in frames)
+    snd_pcm_hw_params_get_period_size(params, &frames, &dir);
+    log_printf("Period Size: %lu frames\n", frames);
+
+    // Log bytes per sample (16-bit)
+    log_printf("Bytes per sample: %d\n", BYTES_PER_SAMPLE);
+
+    // Optionally, log the latency (in ms)
+    double latency = (double)frames / SAMPLE_RATE * 1000.0;
+    log_printf("Estimated Latency: %.2f ms\n", latency);
+
+	if(!silent_buffer) {
+		silent_buffer = mem_alloc((BUFFER_SIZE * 2));
+		if(silent_buffer) {
+			snd_pcm_writei(handle, silent_buffer, SAMPLE_RATE / FRAMES_PER_SECOND);
+		}
+	}
+
 	initialized_audio = 1;
 
 	return(0);
 }
 
+static int sound_callback_count = 0;
+
 void sound_update(void *buffer,int length) {
 	if(initialized_audio) {
-		long ret = snd_pcm_writei(handle, buffer, length);
-		while(ret != length) {
-			if (ret < 0) snd_pcm_prepare( handle );
-			else length -= ret;
+		long ret = snd_pcm_avail(handle);
+		if (ret == -EPIPE) {
+			snd_pcm_prepare( handle );
+			/* try not to drop frames by writing data twice. */
 			ret = snd_pcm_writei(handle, buffer, length);
+			/* get available space and do a 2nd write */
+			ret = snd_pcm_avail(handle);
+			if(ret > 0) {
+				ret = snd_pcm_writei(handle, buffer, length);
+			}
+			return;
 		}
+
+		ret = snd_pcm_writei(handle, buffer, length);
 	}
 }
 
