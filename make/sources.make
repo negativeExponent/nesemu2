@@ -123,7 +123,12 @@ ifeq ($(OSTARGET),LINUX)
 		LIBS += -lportaudio
 	endif
 	ifeq ($(SOUND_OUTPUT), pulse)
-		LIBS += -lpulse -lpulse-simple
+		CFLAGS += $(shell pkg-config libpulse --cflags)
+		LIBS += $(shell pkg-config libpulse --libs)
+	endif
+	ifeq ($(SOUND_OUTPUT), pulse_ra)
+		CFLAGS += $(shell pkg-config libpulse --cflags)
+		LIBS += $(shell pkg-config libpulse --libs)
 	endif
 	ifeq ($(SOUND_OUTPUT), openal)
 		LIBS += -lopenal
