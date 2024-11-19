@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "types.h"
 #include "misc/config.h"
 #include "misc/memutil.h"
@@ -6,13 +7,26 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-#define NUM_BUFFERS 10
+#define NUM_BUFFERS 4
 
 static ALCdevice *device = NULL;
 static ALCcontext *context = NULL;
 static ALuint buffers[NUM_BUFFERS];
 static ALuint source;
 static int initialized_audio = 0;
+
+#ifdef _WIN32
+#define timer_wait(msec) (Sleep((msec)))
+#else
+#include <time.h>
+static void timer_wait(int msec)
+{
+    struct timespec tv;
+    tv.tv_sec          = msec / 1000;
+    tv.tv_nsec         = (msec % 1000) * 1000000;
+    nanosleep(&tv, NULL);
+}
+#endif
 
 /* Helper function to check for OpenAL errors and log them */
 static void check_al_error(const char *context)
@@ -26,6 +40,8 @@ static void check_al_error(const char *context)
 int sound_init()
 {
     int i;
+    u8* silent_buffer = 0;
+    int silent_buffer_size;
 
     /* Check if sound is enabled in the configuration */
     if (config_get_bool("sound.enabled") == 0) {
@@ -65,14 +81,14 @@ int sound_init()
     alSourcei(source, AL_BUFFER, 0);
 
     /* Initialize buffers with silent data */
+    silent_buffer_size = BYTES_PER_FRAME;
+    silent_buffer = mem_realloc(silent_buffer, silent_buffer_size);
     for (i = 0; i < NUM_BUFFERS; i++) {
-        alBufferData(buffers[i], AL_FORMAT_MONO16, NULL, BYTES_PER_FRAME, SAMPLE_RATE);
-        check_al_error("sound_init: alBufferData");
+        alBufferData(buffers[i], AL_FORMAT_MONO16, silent_buffer, silent_buffer_size, SAMPLE_RATE);
     }
-
-    /* Queue the buffers for playback */
     alSourceQueueBuffers(source, NUM_BUFFERS, buffers);
-    check_al_error("sound_init: alSourceQueueBuffers");
+
+    mem_free(silent_buffer);
 
     /* Start playback of the source */
     alSourcePlay(source);
@@ -87,35 +103,46 @@ void sound_update(void *buffer_data, int frame_count)
 {
     ALint state = 0;
     ALint processed = 0;
-    ALuint buffer = 0;
+    ALuint buffer_id = 0;
+    u32 count = 0;
 
     /* If audio is not initialized, do nothing */
     if (!initialized_audio) {
         return;
     }
 
-    /* Check current state of the audio source */
-    alGetSourcei(source, AL_SOURCE_STATE, &state);
-    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
+    /* Loop to handle processed buffers */
+    while (count < 60) {
+        /* Get the number of buffers that have been processed */
+        alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
+        check_al_error("sound_update: alGetSourcei");
 
-    /* If no buffers have been processed, return early */
-    if (processed == 0) {
-        return;
+        /* If there are processed buffers, handle them */
+        if (processed > 0) {
+            log_printf("processed = %d\n", processed);
+            /* Unqueue a processed buffer and fill it with new data */
+            alSourceUnqueueBuffers(source, 1, &buffer_id);
+            check_al_error("sound_update: alSourceUnqueueBuffers");
+
+            /* Fill the buffer with new sound data */
+            alBufferData(buffer_id, AL_FORMAT_MONO16, buffer_data, frame_count * SAMPLE_SIZE, SAMPLE_RATE);
+            check_al_error("sound_update: alBufferData");
+
+            /* Queue the buffer back for playback */
+            alSourceQueueBuffers(source, 1, &buffer_id);
+            check_al_error("sound_update: alSourceQueueBuffers");
+
+            break;  /* Exit the loop once we've processed one buffer */
+        }
+
+        /* If no buffers have been processed, wait for a bit */
+        timer_wait(1);  /* Sleep for a small period to avoid busy waiting */
+        count++;
     }
 
-    /* Unqueue a processed buffer and refill it with new sound data */
-    alSourceUnqueueBuffers(source, 1, &buffer);
-    check_al_error("sound_update: alSourceUnqueueBuffers");
-
-    /* Fill the buffer with the new audio data */
-    alBufferData(buffer, AL_FORMAT_MONO16, buffer_data, frame_count * SAMPLE_SIZE, SAMPLE_RATE);
-    check_al_error("sound_update: alBufferData");
-
-    /* Queue the buffer back for playback */
-    alSourceQueueBuffers(source, 1, &buffer);
-    check_al_error("sound_update: alSourceQueueBuffers");
-
-    /* If the source isn't playing, start playback */
+    /* If the audio source is not currently playing, start it */
+    alGetSourcei(source, AL_SOURCE_STATE, &state);
+    check_al_error("sound_update: alGetSourcei");
     if (state != AL_PLAYING) {
         alSourcePlay(source);
         check_al_error("sound_update: alSourcePlay");
