@@ -150,7 +150,7 @@ void	MMC5sound_Load (void)
 	memset(&MMC5sound,0,sizeof(TMMC5sound));
 }
 
-void	MMC5sound_Reset (int ResetType)
+void	MMC5sound_Reset (void)
 {
 	MMC5sound.Sqr0.Cycles = 1;
 	MMC5sound.Sqr1.Cycles = 1;

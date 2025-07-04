@@ -9,7 +9,7 @@
 #define	S_MMC5_H
 
 void		MMC5sound_Load		(void);
-void		MMC5sound_Reset		(int);
+void		MMC5sound_Reset		(void);
 void		MMC5sound_Unload	(void);
 void		MMC5sound_Write		(int,int);
 int		MMC5sound_Read		(int);
